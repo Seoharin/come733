@@ -117,36 +117,32 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 // Delete a record from a page. Returns OK if everything went okay.
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
-Status HFPage::deleteRecord(const RID& rid)
-{
-	slot_t* drec = &slot[rid.slotNo];
+Status HFPage::deleteRecord(const RID& rid) {
+    if (slotCnt == 0 || rid.slotNo < 0 || rid.slotNo >= slotCnt || slot[rid.slotNo].length == EMPTY_SLOT)
+        return FAIL;
 
-	if (slotCnt == 0 || !rid.slotNo || rid.slotNo >= slotCnt
-		|| drec->length == EMPTY_SLOT)
-		return FAIL;
+    int offset = slot[rid.slotNo].offset;
+    int length = slot[rid.slotNo].length;
+    memmove(data + usedPtr + length, data + usedPtr, offset - usedPtr);
+    usedPtr += length;
 
-	int doffset = drec->offset;
-	int dlength = drec->length;
-	//memcpy(dest, src, sizeof(src))
-	memcpy(data + usedPtr + dlength, data + usedPtr, doffset - usedPtr);
+    slot[rid.slotNo].length = EMPTY_SLOT;
+    for (int i = slotCnt - 1; i >= 0; i--) {
+        if (slot[i].length != EMPTY_SLOT) {
+            break;
+        }
+        slotCnt--;
+    }
 
-	drec->length = EMPTY_SLOT;
-	usedPtr = usedPtr + dlength;
-	freeSpace = freeSpace + dlength;
+    if (rid.slotNo < slotCnt) {
+        for (int i = rid.slotNo + 1; i < slotCnt; i++) {
+            slot[i].offset += length;
+        }
+    }
 
-	int temp = slotCnt;
-	while (temp) {
-		if (slot[temp - 1].length != EMPTY_SLOT) break;
-		temp--;
-	}
+    freeSpace += length;
 
-	if (rid.slotNo < slotCnt) {
-		for (int i = rid.slotNo + 1; i < slotCnt; i++) {
-			slot[i].offset += dlength;
-		}
-	}
-
-	return OK;
+    return OK;
 }
 
 // **********************************************************
