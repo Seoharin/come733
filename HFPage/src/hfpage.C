@@ -134,9 +134,9 @@ drec->length = EMPTY_SLOT;
 usedPtr = usedPtr+dlength;
 freeSpace = freeSpace+dlength;
 
-int temp = slotCnt;
-while(temp){
-if(slot[temp-1].length != EMPTY_SLOT) break;
+int temp = slotCnt-1;
+while(temp>=0){
+if(slot[temp].length != EMPTY_SLOT) break;
 temp--;
 }
 
@@ -254,7 +254,7 @@ int HFPage::available_space(void)
 {
 // fill in the body
 short avalspace =0;
-if(!slotCnt) avalspace = freeSpace - slotCnt*sizeof(slot_t);
+if(slotCnt!=0) avalspace = freeSpace - slotCnt*sizeof(slot_t);
 else avalspace = freeSpace- sizeof(slot_t);
 return avalspace;
 }
