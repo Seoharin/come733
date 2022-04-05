@@ -137,7 +137,7 @@ freeSpace = freeSpace+dlength;
 int temp = slotCnt-1;
 while(temp>=0){
 if(slot[temp].length != EMPTY_SLOT) break;
-temp--;
+slotCnt--;
 }
 
 if(rid.slotNo < slotCnt){
