@@ -105,7 +105,7 @@ rid.slotNo = num;
 
 //memcpy(dest, src, sizeof(src))
 //memory copy form recPtr to data area in page
-memcpy(data+usedPtr, recPtr, recLen);
+memmove(data+usedPtr, recPtr, recLen);
 
 //after insert record, change freespace and usedptr
 freeSpace -= recLen;
@@ -134,13 +134,12 @@ drec->length = EMPTY_SLOT;
 usedPtr = usedPtr+dlength;
 freeSpace = freeSpace+dlength;
 
-
-for (int i = slotCnt - 1; i >= 0; i--) {
-        if (slot[i].length != EMPTY_SLOT) {
-            break;
-        }
-        slotCnt--;
-    }
+int temp = slotCnt;
+while(temp){
+     if(slot[temp-1].length != EMPTY_SLOT) break;
+     slotCnt--;
+     temp--;
+}
 
 if(rid.slotNo < slotCnt){
 for(int i = rid.slotNo+1 ; i<slotCnt; i++){
