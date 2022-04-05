@@ -135,10 +135,12 @@ usedPtr = usedPtr+dlength;
 freeSpace = freeSpace+dlength;
 
 int temp = slotCnt-1;
-while(temp>=0){
-if(slot[temp].length != EMPTY_SLOT) break;
-slotCnt--;
-}
+ for (int i = slotCnt - 1; i >= 0; i--) {
+        if (slot[i].length != EMPTY_SLOT) {
+            break;
+        }
+        slotCnt--;
+    }
 
 if(rid.slotNo < slotCnt){
 for(int i = rid.slotNo+1 ; i<slotCnt; i++){
