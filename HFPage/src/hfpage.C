@@ -153,7 +153,84 @@ return OK;
 // **********************************************************
 // returns RID of first record on page
 // returns RID of first record on page
-Status HFPage::firstRecord(RID& firstRid)
+// returns RID of first record on page
+Status HFPage::firstRecord(RID& firstRid) {
+    
+    bool written = false;
+    int i = 0;
+
+    //check string and slot cnt are empty
+    if (empty()) {
+        
+        return DONE;
+    }
+
+    else if (slotCnt == 0){
+        
+        return FAIL;
+    }
+
+    //find first slot
+    else if(written == false){
+    
+    while(i<slotCnt){
+
+        if (slot[i].length != EMPTY_SLOT) {
+            firstRid.slotNo = i;
+            firstRid.pageNo = curPage;
+            written = true;
+            break;
+        }
+
+        i++;
+
+    }
+
+    
+        return DONE;
+    }
+
+    return OK;
+}
+
+// **********************************************************
+// returns RID of next record on the page
+// returns DONE if no more records exist on the page; otherwise OK
+Status HFPage::nextRecord(RID curRid, RID& nextRid) {
+
+    bool nextOK = false;
+    int i = curRid.slotNo +1;
+
+
+    if (curRid.pageNo != curPage) {
+        
+        return FAIL;
+    }
+
+    else if (empty()) {
+        
+        return FAIL;
+    }
+
+    else if(nextOK){
+
+    while(i< slotCnt){
+        if (slot[i].length != EMPTY_SLOT) {
+            nextRid.slotNo = i;
+            nextRid.pageNo = curPage;
+            nextOK = true;
+            break;
+        }
+
+        i++;
+    }
+
+    
+        return OK;
+    }
+
+    return DONE;
+}Status HFPage::firstRecord(RID& firstRid)
 {
 // fill in the body
 if (empty()) {
