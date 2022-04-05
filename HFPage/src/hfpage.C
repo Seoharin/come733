@@ -155,83 +155,68 @@ return OK;
 // returns RID of first record on page
 // returns RID of first record on page
 // returns RID of first record on page
-Status HFPage::firstRecord(RID& firstRid) {
-    
-    bool written = false;
-    int i = 0;
+Status HFPage::firstRecord(RID& firstRid)
+{
+// fill in the body
+if (empty()) {
+return DONE;
+}
 
-    //check string and slot cnt are empty
-    if (empty()) {
-        
-        return DONE;
-    }
+if (slotCnt == 0)
+return FAIL;
 
-    else if (slotCnt == 0){
-        
-        return FAIL;
-    }
+bool hasRecord = false;
 
-    //find first slot
-    else if(written == false){
-    
-    while(i<slotCnt){
+for (int i = 0; i < slotCnt; i++) {
+if (slot[i].length != EMPTY_SLOT) {
+firstRid.slotNo = i;
+firstRid.pageNo = curPage;
+hasRecord = true;
+break;
+}
+}
 
-        if (slot[i].length != EMPTY_SLOT) {
-            firstRid.slotNo = i;
-            firstRid.pageNo = curPage;
-            written = true;
-            break;
-        }
+if (!hasRecord) {
+return DONE;
+}
 
-        i++;
-
-    }
-
-    
-        return DONE;
-    }
-
-    return OK;
+return OK;
 }
 
 // **********************************************************
 // returns RID of next record on the page
 // returns DONE if no more records exist on the page; otherwise OK
-Status HFPage::nextRecord(RID curRid, RID& nextRid) {
+Status HFPage::nextRecord (RID curRid, RID& nextRid)
+{
+// fill in the body
 
-    bool nextOK = false;
-    int i = curRid.slotNo +1;
-
-
-    if (curRid.pageNo != curPage) {
-        
-        return FAIL;
-    }
-
-    else if (empty()) {
-        
-        return FAIL;
-    }
-
-    else if(nextOK){
-
-    while(i< slotCnt){
-        if (slot[i].length != EMPTY_SLOT) {
-            nextRid.slotNo = i;
-            nextRid.pageNo = curPage;
-            nextOK = true;
-            break;
-        }
-
-        i++;
-    }
-
-    
-        return OK;
-    }
-
-    return DONE;
+if (curRid.pageNo != curPage) {
+return FAIL;
 }
+
+if (empty()) {
+return FAIL;
+}
+
+bool foundNext = false;
+
+for (int i = curRid.slotNo + 1; i < slotCnt; i++) {
+if (slot[i].length != EMPTY_SLOT) {
+nextRid.slotNo = i;
+nextRid.pageNo = curPage;
+foundNext = true;
+break;
+}
+}
+
+if (foundNext) {
+return OK;
+}
+
+return DONE;
+}
+
+
 
 // **********************************************************
 // returns length and copies out record with RID rid
