@@ -128,14 +128,14 @@ return FAIL;
 int doffset = drec->offset;
 int dlength = drec->length;
 //memcpy(dest, src, sizeof(src))
-memcpy(data+usedPtr+dlength, data+usedPtr, doffset-usedPtr);
+memmove(data+usedPtr+dlength, data+usedPtr, doffset-usedPtr);
 
 drec->length = EMPTY_SLOT;
 usedPtr = usedPtr+dlength;
 freeSpace = freeSpace+dlength;
 
-int temp = slotCnt-1;
- for (int i = slotCnt - 1; i >= 0; i--) {
+
+for (int i = slotCnt - 1; i >= 0; i--) {
         if (slot[i].length != EMPTY_SLOT) {
             break;
         }
