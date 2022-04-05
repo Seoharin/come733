@@ -151,65 +151,83 @@ return OK;
 
 // **********************************************************
 // returns RID of first record on page
-Status HFPage::firstRecord(RID& firstRid)
-{
-// fill in the body
-if (empty()) {
-return DONE;
-}
+// returns RID of first record on page
+Status HFPage::firstRecord(RID& firstRid) {
+    
+    bool written = false;
+    int i = 0;
 
-if (slotCnt == 0)
-return FAIL;
+    //check string and slot cnt are empty
+    if (empty()) {
+        
+        return DONE;
+    }
 
-bool hasRecord = false;
+    else if (slotCnt == 0){
+        
+        return FAIL;
+    }
 
-for (int i = 0; i < slotCnt; i++) {
-if (slot[i].length != EMPTY_SLOT) {
-firstRid.slotNo = i;
-firstRid.pageNo = curPage;
-hasRecord = true;
-break;
-}
-}
+    //find first slot
+    else if(written == false){
+    
+    while(i<slotCnt){
 
-if (!hasRecord) {
-return DONE;
-}
+        if (slot[i].length != EMPTY_SLOT) {
+            firstRid.slotNo = i;
+            firstRid.pageNo = curPage;
+            written = true;
+            break;
+        }
 
-return OK;
+        i++;
+
+    }
+
+    
+        return DONE;
+    }
+
+    return OK;
 }
 
 // **********************************************************
 // returns RID of next record on the page
 // returns DONE if no more records exist on the page; otherwise OK
-Status HFPage::nextRecord (RID curRid, RID& nextRid)
-{
-// fill in the body
+Status HFPage::nextRecord(RID curRid, RID& nextRid) {
 
-if (curRid.pageNo != curPage) {
-return FAIL;
-}
+    bool nextOK = false;
+    int i = curRid.slotNo +1;
 
-if (empty()) {
-return FAIL;
-}
 
-bool foundNext = false;
+    if (curRid.pageNo != curPage) {
+        
+        return FAIL;
+    }
 
-for (int i = curRid.slotNo + 1; i < slotCnt; i++) {
-if (slot[i].length != EMPTY_SLOT) {
-nextRid.slotNo = i;
-nextRid.pageNo = curPage;
-foundNext = true;
-break;
-}
-}
+    else if (empty()) {
+        
+        return FAIL;
+    }
 
-if (foundNext) {
-return OK;
-}
+    else if(nextOK){
 
-return DONE;
+    while(i< slotCnt){
+        if (slot[i].length != EMPTY_SLOT) {
+            nextRid.slotNo = i;
+            nextRid.pageNo = curPage;
+            nextOK = true;
+            break;
+        }
+
+        i++;
+    }
+
+    
+        return OK;
+    }
+
+    return DONE;
 }
 
 // **********************************************************
