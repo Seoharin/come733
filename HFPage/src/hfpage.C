@@ -154,6 +154,7 @@ return OK;
 // returns RID of first record on page
 // returns RID of first record on page
 // returns RID of first record on page
+// returns RID of first record on page
 Status HFPage::firstRecord(RID& firstRid) {
     
     bool written = false;
@@ -230,68 +231,7 @@ Status HFPage::nextRecord(RID curRid, RID& nextRid) {
     }
 
     return DONE;
-}Status HFPage::firstRecord(RID& firstRid)
-{
-// fill in the body
-if (empty()) {
-return DONE;
 }
-
-if (slotCnt == 0)
-return FAIL;
-
-bool hasRecord = false;
-
-for (int i = 0; i < slotCnt; i++) {
-if (slot[i].length != EMPTY_SLOT) {
-firstRid.slotNo = i;
-firstRid.pageNo = curPage;
-hasRecord = true;
-break;
-}
-}
-
-if (!hasRecord) {
-return DONE;
-}
-
-return OK;
-}
-
-// **********************************************************
-// returns RID of next record on the page
-// returns DONE if no more records exist on the page; otherwise OK
-Status HFPage::nextRecord (RID curRid, RID& nextRid)
-{
-// fill in the body
-
-if (curRid.pageNo != curPage) {
-return FAIL;
-}
-
-if (empty()) {
-return FAIL;
-}
-
-bool foundNext = false;
-
-for (int i = curRid.slotNo + 1; i < slotCnt; i++) {
-if (slot[i].length != EMPTY_SLOT) {
-nextRid.slotNo = i;
-nextRid.pageNo = curPage;
-foundNext = true;
-break;
-}
-}
-
-if (foundNext) {
-return OK;
-}
-
-return DONE;
-}
-
-
 
 // **********************************************************
 // returns length and copies out record with RID rid
