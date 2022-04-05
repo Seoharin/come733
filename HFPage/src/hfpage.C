@@ -121,7 +121,7 @@ Status HFPage::deleteRecord(const RID& rid)
 {
 slot_t *drec = &slot[rid.slotNo];
 
-if (slotCnt == 0 || rid.slotNo >=0 || rid.slotNo >= slotCnt
+if (slotCnt == 0 || rid.slotNo <0 || rid.slotNo >= slotCnt
 || drec->length == EMPTY_SLOT)
 return FAIL;
 
