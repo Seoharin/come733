@@ -156,7 +156,8 @@ return OK;
 // returns RID of first record on page
 // returns RID of first record on page
 Status HFPage::firstRecord(RID& firstRid) {
-    
+     
+    // declare and initialize variables
     int usedP = 0;
     int i = 0;
 
@@ -165,15 +166,14 @@ Status HFPage::firstRecord(RID& firstRid) {
         
         return DONE;
     }
-
+     
+     //check rid and slot cnt are empty
     else if (slotCnt == 0){
         
         return FAIL;
     }
 
-    //find first slot
-    
-    
+    //find empty slot number and change current page number
     while(i<slotCnt){
 
         if (slot[i].length != EMPTY_SLOT) {
@@ -187,12 +187,12 @@ Status HFPage::firstRecord(RID& firstRid) {
         i++;
 
     }
-
+     //return DONE empty slot is not found
     if(usedP == 0){
     
         return DONE;
     }
-
+     // return OK empty slot is found
     return OK;
 }
 
