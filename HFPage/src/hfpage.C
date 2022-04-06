@@ -161,13 +161,13 @@ Status HFPage::firstRecord(RID& firstRid) {
     int usedP = 0;
     int i = 0;
 
-    //check string and slot cnt are empty
+    // return DONE for empty page
     if (empty()) {
         
         return DONE;
     }
      
-     //check rid and slot cnt are empty
+    //check page slots are empty
     else if (slotCnt == 0){
         
         return FAIL;
@@ -187,12 +187,12 @@ Status HFPage::firstRecord(RID& firstRid) {
         i++;
 
     }
-     //return DONE empty slot is not found
+     //return DONE all slots are empty
     if(usedP == 0){
     
         return DONE;
     }
-     // return OK empty slot is found
+  // return OK empty slot number is changed
     return OK;
 }
 
