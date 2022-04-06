@@ -45,6 +45,8 @@ because memmove considers about memory overlap
 
 
 HFPage :: firstRecord
+step1) declare and initialize variables
+step2) check 
 
 HFPage :: nextRecord
 
