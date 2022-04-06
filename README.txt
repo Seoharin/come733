@@ -46,9 +46,17 @@ because memmove considers about memory overlap
 
 HFPage :: firstRecord
 step1) declare and initialize variables
-step2) check 
+step2) check empty page
+step3) check slot error
+step4) find empty slot to record
+stop5) return slot number and page
 
 HFPage :: nextRecord
+step1) declare and initialize variables
+step2) check page number used before
+step3) check empty page
+step4) find empty slot to record
+stop5) return slot number and page
 
 
 HFPage :: getRecord
