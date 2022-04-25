@@ -23,7 +23,7 @@ typedef struct{
 vector<directory> dirs;    //list of all directories for all files
 
 vector<HFPage*> directoryPages;   //holds the Directory pages for currently open file
-char  *FileName;
+const char  *FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
