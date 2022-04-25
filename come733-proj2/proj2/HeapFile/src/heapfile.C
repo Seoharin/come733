@@ -525,7 +525,7 @@ Status HeapFile::findDataPage(const RID& rid,
 
 // *********************************************************************
 // Allocate directory space for a heap file page 
-Status allocateDirSpace(struct DataPageInfo * dpinfop,/* data page information*/
+Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page information*/
                             PageId &allocDirPageId,/*Directory page having the first data page record*/
                             RID &allocDataPageRid)
 {
