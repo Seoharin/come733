@@ -13,7 +13,7 @@
 #include "db.h"
 #include <vector>
 
-vector<HFPage*> directoryPages;
+extern vector<HFPage*> directoryPages;
 static const int namelen = 24;
 struct Rec
 {
