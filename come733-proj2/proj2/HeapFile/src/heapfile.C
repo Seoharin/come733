@@ -1,5 +1,5 @@
 #include "heapfile.h"
-
+#include <vector>
 // ******************************************************
 // Error messages for the heapfile layer
 
@@ -15,7 +15,20 @@ static const char *hfErrMsgs[] = {
     "file has already been deleted",
 };
 
+typedef struct{
+    int headerPageId;
+    vector<HFPage*> pages;
+}directory;          //mapping of page IDs to directory pages
+
+vector<directory> dirs;    //list of all directories for all files
+
+vector<HFPage*> directoryPages;   //holds the Directory pages for currently open file
+string FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
+
+
+enum {CLEAN,DIRTY};
+int recCount = 0;
 
 // ********************************************************
 // Constructor
