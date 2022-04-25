@@ -12,7 +12,7 @@
 #include "buf.h"
 #include "db.h"
 
-extern vector<HFPage*> directoryPages;
+vector<HFPage*> directoryPages;
 static const int namelen = 24;
 struct Rec
 {
@@ -20,7 +20,7 @@ struct Rec
     float fval;
     char name[namelen];
 };
-extern string FileName;
+extern const char * FileName;
 
 // *******************************************
 // The constructor pins the first page in the file
