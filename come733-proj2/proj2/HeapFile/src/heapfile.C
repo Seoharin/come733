@@ -64,7 +64,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
 
 
 
-    *FileName = name;
+    FileName = name;
     // fill in the body
     returnStatus = OK;
    
