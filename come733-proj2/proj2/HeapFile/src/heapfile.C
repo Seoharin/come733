@@ -533,7 +533,7 @@ Status allocateDirSpace(struct DataPageInfo * dpinfop,
     int pageId;
     Page *pg;
     int i;
-    String fname = this->fileName;
+    string fname = this->fileName;
     
     //check existing pages
     for(int i=0;i<directoryPages.size();i++)
