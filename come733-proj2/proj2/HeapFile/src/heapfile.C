@@ -83,7 +83,11 @@ HeapFile::~HeapFile()
 // Return number of records in heap file
 int HeapFile::getRecCnt()
 {
-    HFPage *hfpage = directoryPages[i];
+   // fill in the body
+    int count =0;
+    for(int i=0;i<directoryPages.size();i++)
+    {
+        HFPage *hfpage = directoryPages[i];
         Page *page = (Page *)hfpage;
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(),page,hfpage->empty(),this->fileName);
         if(status!=OK)
