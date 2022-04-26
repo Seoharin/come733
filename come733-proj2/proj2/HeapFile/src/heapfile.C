@@ -88,15 +88,16 @@ int HeapFile::getRecCnt()
         HFPage* hfpage = directoryPages[i];
         Page* page = (Page*)hfpage;
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-        if (status == FAIL)
+        if (status != OK)
             return  status;
         RID rid, tempRid;
         status = hfpage->firstRecord(rid);
         DataPageInfo* info;
         char* record;
         int recLen;
-        while (status==OK)
+        while (1)
         {
+            if(status!=OK) break;
             hfpage->returnRecord(rid, record, recLen);
             info = (DataPageInfo*)record;
             count += info->recct;
