@@ -90,7 +90,7 @@ int HeapFile::getRecCnt()
     
     while(i<directoryPages.size()){
         hfpage = directoryPages[i];
-        page = (Page*)hfpage;
+        page = hfpage;
         
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
         if (status != OK)
@@ -104,7 +104,7 @@ int HeapFile::getRecCnt()
             if(status!=OK) break;
             
             hfpage->returnRecord(rid, record, recLen);
-            info = (DataPageInfo*)record;
+            info = record;
             rcnt += info->recct;
 
             curRid = rid;
