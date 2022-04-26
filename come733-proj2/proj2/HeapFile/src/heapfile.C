@@ -258,11 +258,11 @@ Status HeapFile::deleteRecord (const RID& rid)
         if(pinStatus!=OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
         
-        if(hfPage->firstRecord(currid)==OK)
+        if(hfpage->firstRecord(currid)==OK)
         {
             while(1)
             {
-                if(hfPage->returnRecord(currid,recptr,reclen)==OK)
+                if(hfpage->returnRecord(currid,recptr,reclen)==OK)
                 {
                     pinfo = (DataPageInfo*)recptr;
                     if(pinfo->pageId==rid.pageNo) break;
