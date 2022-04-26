@@ -83,8 +83,6 @@ int HeapFile::getRecCnt()
 {
    // fill in the body
     int reccnt =0;
-    HFPage *hfpage;
-    Page *page;
     DataPageInfo *info;
     char *record;
     int recLen;
@@ -92,8 +90,8 @@ int HeapFile::getRecCnt()
     
     for(int i=0;i<directoryPages.size();i++)
     {
-        hfpage = directoryPages[i];
-        page = (Page *)hfpage;
+        HFPage hfpage = directoryPages[i];
+        Page page = (Page *)hfpage;
         
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(),page,hfpage->empty(),this->fileName);
         if(status==FAIL)
