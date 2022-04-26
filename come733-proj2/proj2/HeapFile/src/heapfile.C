@@ -424,19 +424,18 @@ Scan *HeapFile::openScan(Status& status)
 // Wipes out the heapfile from the database permanently. 
 Status HeapFile::deleteFile()
 {
-    Status status = MINIBASE_DB->delete_file_entry(this->fileName)  ;
-    this->file_deleted=1;
-    int index;
-    for(int i=0;i<dirs.size();i++)
+    
+    MINIBASE_DB->delete_file_entry(this->fileName)  ;
+    this->file_deleted=T;
+    
+    int i;
+    for( i=0;i<dirs.size();i++)
     {
-        if(dirs[i].headerPageId == directoryPages[0]->page_no())
-        {
-            index=i;
-            break;
-        }
+        if(dirs[i].headerPageId == directoryPages[0]->page_no()) break;
+       
     }
-    dirs.erase(dirs.begin()+index);
-    return status;
+    dirs.erase(dirs.begin()+i);
+    return OK;
     // fill in the body
 }
 
