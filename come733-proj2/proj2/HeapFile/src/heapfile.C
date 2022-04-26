@@ -351,11 +351,11 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
                  return OK;
                 }
                  
-            }
+            }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
             temp = currid;
             if(hfpage->nextRecord(temp,currid)!=OK) break;
            
-            }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+            }
             
         }
        MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
