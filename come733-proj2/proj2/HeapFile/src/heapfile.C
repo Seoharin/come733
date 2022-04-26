@@ -57,7 +57,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
         directoryPages.clear();
     }
 
-    vector<char>(strlen(name)) fname;
+    vector<char> fname(strlen(name));
     this->fileName = &fname;
     this->file_deleted = 0; 
 
