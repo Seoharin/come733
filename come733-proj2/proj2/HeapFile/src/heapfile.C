@@ -249,15 +249,16 @@ Status HeapFile::deleteRecord (const RID& rid)
     RID currid,temp;
     char *recptr;
     int reclen;
+    Status status;
 
     
     for(int i=0;i<directoryPages.size();i++)
     {
         hfpage = directoryPages[i];
         page = (Page *)page;
-        Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
-        if (pinStatus != OK)
-            return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+        /*status = */MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
+        //if (status != OK)
+        //    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
         
         if(hfpage->firstRecord(currid)==OK)
         {
