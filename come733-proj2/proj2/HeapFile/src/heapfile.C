@@ -278,10 +278,10 @@ Status HeapFile::deleteRecord (const RID& rid)
             HFPage *dp = (HFPage *)dataPage;
             MINIBASE_BM->pinPage(rid.pageNo,dataPage,0,this->fileName);
             
-           Status status = dp->deleteRecord(rid);
+            Status status = dp->deleteRecord(rid);
            // Status deleteStatus = dp->deleteRecord(rid);
-           // if(deleteStatus!=OK)
-            //    return deleteStatus;
+            if(status!=OK)
+                return status;
             MINIBASE_BM->unpinPage(rid.pageNo,DIRTY,this->fileName);
             pinfo->availspace = dp->available_space();
             pinfo->recct -= 1;
