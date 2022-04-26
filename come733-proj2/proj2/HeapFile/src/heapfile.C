@@ -254,7 +254,7 @@ Status HeapFile::deleteRecord (const RID& rid)
     {
         hfpage = directoryPages[i];
         page = (Page *)page;
-        Status pinStatus = MINIBASE_BM->pinPage(hfPage->page_no(),page,0,this->fileName);
+        Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
         if(pinStatus!=OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
         
@@ -267,7 +267,7 @@ Status HeapFile::deleteRecord (const RID& rid)
                     pinfo = (DataPageInfo*)recptr;
                     if(pinfo->pageId==rid.pageNo) break;
                     temp=currid;
-                    if(hfPage->nextRecord(temp,currid)!=OK) break;
+                    if(hfpage->nextRecord(temp,currid)!=OK) break;
                 }
             }
         }
@@ -283,11 +283,11 @@ Status HeapFile::deleteRecord (const RID& rid)
             MINIBASE_BM->unpinPage(rid.pageNo,DIRTY,this->fileName);
             pinfo->availspace = dp->available_space();
             pinfo->recct -= 1;
-            MINIBASE_BM->unpinPage(hfPage->page_no(),DIRTY,this->fileName);
+            MINIBASE_BM->unpinPage(hfpage->page_no(),DIRTY,this->fileName);
             return deleteStatus;
         }
         
-        Status unpinStatus = MINIBASE_BM->unpinPage(hfPage->page_no(),CLEAN,this->fileName);
+        Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
         if(unpinStatus!=OK)
             return unpinStatus;
   
