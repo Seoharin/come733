@@ -1,5 +1,7 @@
 #include "heapfile.h"
 #include <vector>
+#define DIRTY 1
+#define CLEAN 0
 // ******************************************************
 // Error messages for the heapfile layer
 
@@ -27,7 +29,7 @@ const char  *FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
-enum {CLEAN,DIRTY};
+
 int recCount = 0;
 
 // ********************************************************
