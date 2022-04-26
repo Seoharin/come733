@@ -321,32 +321,36 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
     
         MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
        
-        if(hfpage->fisrtRecord(currid)==OK)
+        if(hfpage->firstRecord(currid)==OK)
         {
             while(1)
             {
-                 Status returnStatus = hfpage->returnRecord(currId, record, recLength);
-                 if (returnStatus != OK)
-                    return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+                if(hfpage->returnRecord(currid,recptr,reclen)==OK)
+                {
+                   // Status returnStatus = hfpage->returnRecord(currid, recptr, reclen);
+                // if (returnStatus != OK)
+                    //return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
                  pinfo = (DataPageInfo*)recptr;
-                if (pinfo->pageId == rid.pageNo)
-                {
-                Page* dataPage;
-                MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
-                HFPage* hfDataPage = (HFPage*)dataPage;
-                char* origin;
-                int len;
+                 if (pinfo->pageId == rid.pageNo)
+                 {
+                 Page* dataPage;
+                 MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
+                 HFPage* hfDataPage = (HFPage*)dataPage;
+                 char* origin;
+                 int len;
                 
-                if(hfDataPage->returnRecord(rid,origin,len)==OK)
-                {
+                 if(hfDataPage->returnRecord(rid,origin,len)==OK)
+                 {
                     if(len!=reclen) return FAIL;
                     memmov(originalRecord, recPtr, recLen);
                     MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
                     MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-                }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+                 }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
                
-                return OK;
-            }
+                 return OK;
+                }
+                 
+            }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
             temp = currid;
             if(hfpage->nextRecord(temp,currid)!=OK) break;
            
