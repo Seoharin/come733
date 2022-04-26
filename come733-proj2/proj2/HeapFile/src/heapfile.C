@@ -508,11 +508,10 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
                             PageId &allocDirPageId,/*Directory page having the first data page record*/
                             RID &allocDataPageRid)
 {
-    HFPage hfpage;
+    HFPage *hfpage;
     Page *page;
     RID rid;
     int pageId;
-    Page *pg;
     int i;
     //check existing pages
     for(int i=0;i<directoryPages.size();i++)
@@ -521,7 +520,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
 
         if(hfpage->available_space()>sizeof(DataPageInfo))
         {
-            page = (Page *)hfpage;
+            page = (Page*) hfpage;
           //  int num = MINIBASE_BM->getNumUnpinnedBuffers();
             allocDirPageId = hfpage->page_no();
             Status pinStatus = MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
