@@ -378,14 +378,14 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
       page = (Page *)hfpage;
       MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
       
-      Status status = hfpage->firstRecord(curRid);
+      Status status = hfpage->firstRecord(currid);
       
       while(status == OK)
       {
           Status ret = hfpage->returnRecord(currid,recptr,reclen);
           if(ret!=OK)
               return MINIBASE_FIRST_ERROR(HEAPFILE,RECNOTFOUND);
-          *pinfo = (DataPageInfo *)recptr;
+          pinfo = (DataPageInfo *)recptr;
           if(pinfo->pageId == rid.pageNo)
           {
               Page *dataPage;
