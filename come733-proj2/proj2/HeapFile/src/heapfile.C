@@ -288,10 +288,10 @@ Status HeapFile::deleteRecord (const RID& rid)
             MINIBASE_BM->unpinPage(hfpage->page_no(),DIRTY,this->fileName);
             return status;
         }
-        MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-        //Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-        //if(unpinStatus!=OK)
-        //    return unpinStatus;
+        //MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
+        status = MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
+        if(status!=OK)
+            return status;
   
     }
     return DONE;
