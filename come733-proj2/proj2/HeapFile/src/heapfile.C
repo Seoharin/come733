@@ -60,9 +60,9 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     this->fileName = new char[strlen(name)];
     for(int i=0;i<strlen(name);i++)
         this->fileName[i]=name[i];
-    this->file_deleted = 0;
+    this->file_deleted = F;
 
-    
+    FileName = name;
     // fill in the body
     returnStatus = OK;
    
