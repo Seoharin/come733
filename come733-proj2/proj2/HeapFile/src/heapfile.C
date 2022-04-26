@@ -243,49 +243,54 @@ Status HeapFile::deleteRecord (const RID& rid)
   if(rid.slotNo < 0)
         return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_SLOTNO);
   // fill in the body
+    HFPage *hfpage;
+    Page *page;
+    DataPageInfo *pinfo;
+    RID currid,temp;
+    char *recptr;
+    int reclen;
+    
     for(int i=0;i<directoryPages.size();i++)
     {
-        HFPage *hfPage = directoryPages[i];
-        Page *dirPage = (Page *)dirPage;
+        hfPage = directoryPages[i];
+        page = (Page *)page;
         Status pinStatus = MINIBASE_BM->pinPage(hfPage->page_no(),dirPage,0,this->fileName);
         if(pinStatus!=OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-        RID currId,temp;
-        char *record;
-        int recLen;
-        Status status = hfPage->firstRecord(currId);
-        DataPageInfo *info;
-        while(status == OK)
+        
+        if(hfPage->firstRecord(currid)==OK)
         {
-            status = hfPage->returnRecord(currId,record,recLen);
-            if(status!=OK)
-                return status;
-            info = (DataPageInfo *)record;
-            if(info->pageId==rid.pageNo)
+            while(1)
             {
-                break;
+                if(hfPage->returnRecord(currid,recptr,reclen)==OK)
+                {
+                    pinfo = (DataPageInfo*)recptr;
+                    if(pinfo->pageId==rid.pageNo) break;
+                    temp=currid;
+                    if(hfPage->nextRecord(temp,currid)!=OK) break;
+                }
             }
-            temp=currId;
-            status = hfPage->nextRecord(temp,currId);
         }
         
-        if(status==OK)//record found
+        if(hfPage->returnRecord(currid,recptr,reclen)==OK)
         {
-           Page *dataPage;
+            Page *dataPage;
             MINIBASE_BM->pinPage(rid.pageNo,dataPage,0,this->fileName);
             HFPage *dp = (HFPage *)dataPage;
             Status deleteStatus = dp->deleteRecord(rid);
             if(deleteStatus!=OK)
                 return deleteStatus;
             MINIBASE_BM->unpinPage(rid.pageNo,DIRTY,this->fileName);
-            info->availspace = dp->available_space();
-            info->recct -= 1;
+            pinfo->availspace = dp->available_space();
+            pinfo->recct -= 1;
             MINIBASE_BM->unpinPage(hfPage->page_no(),DIRTY,this->fileName);
             return deleteStatus;
         }
+        
         Status unpinStatus = MINIBASE_BM->unpinPage(hfPage->page_no(),CLEAN,this->fileName);
         if(unpinStatus!=OK)
             return unpinStatus;
+  
     }
     return DONE;
 
