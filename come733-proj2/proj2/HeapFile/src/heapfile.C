@@ -119,11 +119,7 @@ int HeapFile::getRecCnt()
 // Insert a record into the file
 Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
 {
-     if(recPtr==NULL)
-        return MINIBASE_FIRST_ERROR(HEAPFILE,BAD_REC_PTR);
-
-    if(recLen>=MINIBASE_PAGESIZE)
-        return MINIBASE_FIRST_ERROR(HEAPFILE,NO_SPACE);
+     
     // fill in the body
     for(int i=0;i<directoryPages.size();i++) {
         HFPage *hfpage = directoryPages[i];
@@ -268,6 +264,7 @@ Status HeapFile::deleteRecord (const RID& rid)
             temp=currId;
             status = hfPage->nextRecord(temp,currId);
         }
+        
         if(status==OK)//record found
         {
            Page *dataPage;
