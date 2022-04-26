@@ -154,7 +154,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                 outRid.pageNo = pinfo->pageId;
                 
                 Page* dataPage;
-                MINIBASE_BM->pinPage(info->pageId, dataPage, 0, this->fileName);
+                MINIBASE_BM->pinPage(pinfo->pageId, dataPage, 0, this->fileName);
                 
                 HFPage* hfdatapage = (HFPage*)dataPage;
                 Status insertStatus = hfdatapage->insertRecord(recPtr, recLen, outRid);
