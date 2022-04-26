@@ -318,7 +318,7 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
     for(int i=0;i<directoryPages.size();i++)
     {
         hfpage = directoryPages[i];
-        page = (Page *)hfpage;
+        page = (Page *)page;
     
         MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
        
