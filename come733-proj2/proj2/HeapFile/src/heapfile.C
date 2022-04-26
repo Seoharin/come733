@@ -48,12 +48,10 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
 
     if (already_status == OK) {
-        int i=0;
-        while(i<dirs.size()){
-            if(dirs[i].headerPageId==start_pg) break;
-            i++;
+        for(int i=0;i<dirs.size();i++){
+            directoryPages = dirs[i].pages;
+            break;
        } 
-    directoryPages = dirs[i].pages;
     }
     else {
         directoryPages.clear();
