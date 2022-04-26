@@ -45,6 +45,8 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
         return;
     }
     
+    this->file_deleted = F;
+    
     this->fileName = (char*) malloc(sizeof(char)*namelen);
     for(int i=0;i<namelen;i++)
         this->fileName[i]=name[i];
@@ -61,9 +63,6 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
        directoryPages=dirs[i].pages;
     }
  
-   
-    this->file_deleted = F;
-
     FileName = name;
     // fill in the body
     returnStatus = OK;
