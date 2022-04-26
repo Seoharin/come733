@@ -1,5 +1,6 @@
 #include "heapfile.h"
 #include <vector>
+#include <memory.h>
 #define DIRTY 1
 #define CLEAN 0
 #define T 1
@@ -342,7 +343,7 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
                  if(hfDataPage->returnRecord(rid,origin,len)==OK)
                  {
                     if(len!=reclen) return FAIL;
-                    memmov(originalRecord, recPtr, recLen);
+                    memmove(origin, recPtr, recLen);
                     MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
                     MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
                  }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
