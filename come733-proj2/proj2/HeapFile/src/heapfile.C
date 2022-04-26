@@ -37,39 +37,32 @@ int recCount = 0;
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
    
-    PageId pg;
-    if(strlen(name)>MAX_NAME)     //file name has a limit
-    {
-        returnStatus=FAIL;
+   if (strlen(name) > MAX_NAME) {
+        returnStatus = FAIL;
         return;
     }
-    Status status = MINIBASE_DB->get_file_entry(name,pg);   //check for file name entry in DB
 
-    if(status==OK)         //already existing file
-    {
-        for(int i=0;i<dirs.size();i++)
-        {
-            if(dirs[i].headerPageId == pg)       //check for matching header page ID from list of directories and retrieve the directory pages
-            {
+    PageId start_pg;
+    Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
+    
+    if (already_status == OK) {
+        for (int i = 0; i < dirs.size(); i++) {
+            if (dirs[i].headerPageId == start_pg) {
                 directoryPages = dirs[i].pages;
                 break;
             }
         }
-    } else
-    {
-        directoryPages.clear();   //otherwise clear the currently selected directory pages
     }
-    this->fileName = new char[strlen(name)];
-    for(int i=0;i<strlen(name);i++)
-        this->fileName[i]=name[i];
-    this->file_deleted = 0;
+    else {
+        directoryPages.clear();
+    }
 
+    vector<char>(strlen(name)) fname;
+    this->fileName = &fname;
+    this->file_deleted = 0; 
 
-
-    FileName = name;
     // fill in the body
     returnStatus = OK;
-   
    
 }
 
