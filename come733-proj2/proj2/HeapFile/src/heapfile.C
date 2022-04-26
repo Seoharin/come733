@@ -535,29 +535,26 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
 
 
     //no space, so create new directory page
-    HFPage *dirPage;
-
-   // Status newStatus = 
+    HFPage *newpage;
     MINIBASE_BM->newPage(pageId,page,1);
-    //if(newStatus!=OK)
-   //     return MINIBASE_CHAIN_ERROR(BUFMGR,newStatus);
-    dirPage = (HFPage *)page;
-    dirPage->init(pageId);
-    allocDirPageId = dirPage->page_no();
+   
+    newpage = (HFPage *)page;
+    newpage->init(pageId);
+    allocDirPageId = newpage->page_no();
 
-    Status status = dirPage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
+    Status status = newpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
     if(status!=OK)
         return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
     
     MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
     
-    directoryPages.push_back(dirPage);
+    directoryPages.push_back(newpage);
     if(directoryPages.size()==1)
     {
-        Status status = MINIBASE_DB->add_file_entry(this->fileName,dirPage->page_no());
+        Status status = MINIBASE_DB->add_file_entry(this->fileName,newpage->page_no());
         directory d;
         d.pages = directoryPages;
-        d.headerPageId = dirPage->page_no();
+        d.headerPageId = newpage->page_no();
         dirs.push_back(d);
     } else
     {
