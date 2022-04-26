@@ -560,7 +560,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
             }
         }
         
-     }else return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
+     }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
     
     return OK;
 }
