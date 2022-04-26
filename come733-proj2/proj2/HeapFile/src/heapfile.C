@@ -334,18 +334,16 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                          HFPage* hfDataPage = (HFPage*)dataPage;
                          char* origin;
                          int len;
-                         Status status = hfDataPage->returnRecord(rid, origin, len);
-                         if (status != OK)
-                             return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
-                         if (len != recLen)
-                             return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
-                         memmove(origin, recPtr, recLen);
-               
-                         MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
-               
-                         MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-                
-                         return status;
+                         if(hfDataPage->returnRecord(rid,origin,len)==Ok){
+                             if(len==recLen){
+                                 memmove(origin, recPtr, recLen);
+                                 MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
+                                 MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+                                 
+                             }else return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
+                             
+                         }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+                         return OK;
                     }
                     temp = currid;
                     if(hfpage->nextRecord(temp,currid)!=OK) break;
