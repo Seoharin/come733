@@ -58,7 +58,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     }
 
     vector<char> fname(strlen(name));
-    this->fileName = &fname;
+    this->fileName = fname;
     this->file_deleted = 0; 
 
     // fill in the body
