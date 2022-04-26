@@ -283,7 +283,7 @@ Status HeapFile::deleteRecord (const RID& rid)
             {
                  MINIBASE_BM->unpinPage(rid.pageNo,DIRTY,this->fileName);
            
-                pinfo->recct = recct- 1;
+                pinfo->recct = pinfo->recct- 1;
                 pinfo->availspace = dp->available_space();
             
                 MINIBASE_BM->unpinPage(hfpage->page_no(),DIRTY,this->fileName);
