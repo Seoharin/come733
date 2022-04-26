@@ -129,10 +129,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     for (int i = 0; i < directoryPages.size(); i++) {
         HFPage* hfpage = directoryPages[i];
         Page* page = (Page*)hfpage;
-        /*Status status = */MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-        //if (status != OK) {
-        //    return status;
-        //}
+        Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+        if (status != OK) {
+            return status;
+        }
         RID rid, currId;
         status = hfpage->firstRecord(rid);
         if (status != OK)
@@ -319,9 +319,10 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
         hfpage = directoryPages[i];
         page = (Page*)hfpage;
         
-        Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
-        if (pinStatus != OK)
-            return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+        //Status pinStatus =
+        MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
+        //if (pinStatus != OK)
+        //    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
         
         
         Status status = hfpage->firstRecord(currid);
