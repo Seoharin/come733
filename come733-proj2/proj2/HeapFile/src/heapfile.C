@@ -392,7 +392,7 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
                        memmove(recPtr,record,recLen);
                        MINIBASE_BM->unpinPage(rid.pageNo,CLEAN,this->fileName);
                        MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);  
-                   }else return MINIBASE_CHAIN_ERROR(BUFMGR,returnStatus);
+                   }else return MINIBASE_CHAIN_ERROR(BUFMGR,FAIL);
                        
                    return OK;
                    }
