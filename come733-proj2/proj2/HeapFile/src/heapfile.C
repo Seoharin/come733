@@ -272,7 +272,7 @@ Status HeapFile::deleteRecord (const RID& rid)
             }
         }
         
-        if(hfPage->returnRecord(currid,recptr,reclen)==OK)
+        if(hfpage->returnRecord(currid,recptr,reclen)==OK)
         {
             Page *dataPage;
             MINIBASE_BM->pinPage(rid.pageNo,dataPage,0,this->fileName);
