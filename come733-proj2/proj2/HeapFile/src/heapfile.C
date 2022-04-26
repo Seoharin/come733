@@ -98,7 +98,7 @@ int HeapFile::getRecCnt()
         
         
         status = hfpage->firstRecord(rid);
-        if((hfpage->firstRecord(Rid))==OK)
+        if((hfpage->firstRecord(rid))==OK)
         {
             do{
             hfpage->returnRecord(rid, record, recLen);
