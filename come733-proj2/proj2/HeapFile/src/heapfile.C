@@ -340,7 +340,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                                  MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
                                  MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
                                  
-                             }else return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
+                             }else return FAIL;
                              
                          }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
                          return OK;
