@@ -388,16 +388,13 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
              
                    HFPage *dp = (HFPage *)dataPage;
                    char *record;
-                   Status returnStatus = dp->returnRecord(rid,record,recLen);
-                   if(returnStatus!=OK)
-                        return MINIBASE_CHAIN_ERROR(BUFMGR,returnStatus);
-                   memmove(recPtr,record,recLen);
-                   if(returnStatus!=OK)
-                         return returnStatus;
-                   MINIBASE_BM->unpinPage(rid.pageNo,CLEAN,this->fileName);
-                   MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-              
-                   return returnStatus;
+                   if(dp->returnRecord(rid,record,recLen)==OK){
+                       memmove(recPtr,record,recLen);
+                       MINIBASE_BM->unpinPage(rid.pageNo,CLEAN,this->fileName);
+                       MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);  
+                   }else return MINIBASE_CHAIN_ERROR(BUFMGR,returnStatus);
+                       
+                   return OK;
                    }
               temp = currid;
               if(hfpage->nextRecord(temp,currid)!=OK) break;
