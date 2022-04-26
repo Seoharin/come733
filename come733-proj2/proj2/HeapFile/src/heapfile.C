@@ -90,7 +90,7 @@ int HeapFile::getRecCnt()
     
     while(i<directoryPages.size()){
         hfpage = directoryPages[i];
-        page = (page *)hfpage;
+        page = (Page *)hfpage;
         
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
         if (status != OK)
