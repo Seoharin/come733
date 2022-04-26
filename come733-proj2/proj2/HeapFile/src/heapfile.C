@@ -521,9 +521,8 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
         if(hfpage->available_space()>sizeof(DataPageInfo))
         {
             page = (Page*) hfpage;
-          //  int num = MINIBASE_BM->getNumUnpinnedBuffers();
             allocDirPageId = hfpage->page_no();
-            pinStatus = MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
+            MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
            
 
             Status status = hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
