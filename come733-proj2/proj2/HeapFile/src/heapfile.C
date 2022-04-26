@@ -513,6 +513,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     RID rid;
     int pageId;
     int i;
+    
     //check existing pages
     for(int i=0;i<directoryPages.size();i++)
     {
@@ -536,9 +537,10 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     //no space, so create new directory page
     HFPage *dirPage;
 
-    Status newStatus = MINIBASE_BM->newPage(pageId,page,1);
-    if(newStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,newStatus);
+   // Status newStatus = 
+    MINIBASE_BM->newPage(pageId,page,1);
+    //if(newStatus!=OK)
+   //     return MINIBASE_CHAIN_ERROR(BUFMGR,newStatus);
     dirPage = (HFPage *)page;
     dirPage->init(pageId);
     allocDirPageId = dirPage->page_no();
