@@ -83,7 +83,7 @@ int HeapFile::getRecCnt()
     HFPage *hfpage;
     Page * page;
     RID rid, curRid;
-    DataPageInfo* info;
+    DataPageInfo* pinfo;
     char* record;
     int recLen;
     int i=0;
@@ -92,25 +92,22 @@ int HeapFile::getRecCnt()
         hfpage = directoryPages[i];
         page = (Page *)hfpage;
         
-        Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-        //if (status != OK)
-        //    return  status;
+        MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+      
         
- 
         if((hfpage->firstRecord(rid))==OK)
         {
             do{
             hfpage->returnRecord(rid, record, recLen);
-            info = (DataPageInfo*)record;
+            pinfo = (DataPageInfo*)record;
             rcnt += info->recct;
             curRid = rid;
                 
             }while((hfpage->nextRecord(curRid,rid))==OK); 
         }
         
-        status = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-       // if (status != OK)
-       //     return status;
+        MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+      
         i++;
     }
     
