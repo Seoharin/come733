@@ -255,7 +255,7 @@ Status HeapFile::deleteRecord (const RID& rid)
     {
         hfpage = directoryPages[i];
         page = (Page *)page;
-        Status pinStatus = MINIBASE_BM->pinPage(hfPage->page_no(), dirPage, 0, this->fileName);
+        Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
         if (pinStatus != OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
         
