@@ -20,7 +20,7 @@ static const char *hfErrMsgs[] = {
 };
 
 typedef struct{
-    int headerPageId;
+    PageId headerPageId;
     vector<HFPage*> pages;
 }directory;          //mapping of page IDs to directory pages
 
@@ -98,18 +98,17 @@ int HeapFile::getRecCnt()
         
         
         status = hfpage->firstRecord(rid);
-      
-        while (1)
+        if((hfpage->firstRecord(Rid))==OK)
         {
-            if(status!=OK) break;
-            
+            do{
             hfpage->returnRecord(rid, record, recLen);
             info = (DataPageInfo*)record;
             rcnt += info->recct;
-
             curRid = rid;
             status = hfpage->nextRecord(curRid, rid);
+            }while((hfpage->nextRecord(curRid,rid))==OK); 
         }
+        
         status = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
         if (status != OK)
             return status;
