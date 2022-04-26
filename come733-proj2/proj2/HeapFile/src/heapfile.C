@@ -442,28 +442,24 @@ Status HeapFile::deleteFile()
 // (Allocate pages in the db file via buffer manager)
 Status HeapFile::newDataPage(DataPageInfo *dpinfop)
 {
-     if(dpinfop==NULL)
-    {
-        return FAIL;
-    }
+     if(dpinfop==NULL) return FAIL;
+    
     int dataPageId;
     Page *dataPageVar;
     HFPage *dataPage;
-        Status newStatus = MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
-    if(newStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,newStatus);
-       dataPage = (HFPage *)dataPageVar;
-        dataPage->init(dataPageId);
+    MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
+    
+    dataPage = (HFPage *)dataPageVar;
+    dataPage->init(dataPageId);
 
 
-        dpinfop->availspace = dataPage->available_space();
-        dpinfop->pageId = dataPageId;
-        dpinfop->recct = 0;
+    dpinfop->availspace = dataPage->available_space();
+    dpinfop->pageId = dataPageId;
+    dpinfop->recct = 0;
 
-        Status status = MINIBASE_BM->unpinPage(dataPageId,DIRTY,this->fileName);
-        if(status!=OK)
-            return MINIBASE_CHAIN_ERROR(BUFMGR,status);
-        return OK;
+    MINIBASE_BM->unpinPage(dataPageId,DIRTY,this->fileName);
+   
+     return OK;
 }
 
 // ************************************************************************
