@@ -524,17 +524,11 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
             allocDirPageId = hfpage->page_no();
             MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
            
-
-            Status status = hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
-            if(status!=OK)
-                return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
             
-            MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
-          
-            if(status==OK)
-            {
+            if(hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid)==OK){
+                MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
                 return OK;
-            }
+            }else  return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
         }
     }
 
