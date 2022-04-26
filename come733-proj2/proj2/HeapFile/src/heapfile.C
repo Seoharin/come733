@@ -82,39 +82,34 @@ HeapFile::~HeapFile()
 int HeapFile::getRecCnt()
 {
    // fill in the body
-    int reccnt =0;
-    DataPageInfo *info;
-    char *record;
-    int recLen;
-    RID rid,tempRid;
-    
-    for(int i=0;i<directoryPages.size();i++)
+    int count = 0;
+    for (int i = 0; i < directoryPages.size(); i++)
     {
         HFPage* hfpage = directoryPages[i];
-        Page* page = (Page *)hfpage;
-        
-        Status status = MINIBASE_BM->pinPage(hfpage->page_no(),page,hfpage->empty(),this->fileName);
-        if(status==FAIL)
+        Page* page = (Page*)hfpage;
+        Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+        if (status == FAIL)
             return  status;
-   
+        RID rid, tempRid;
         status = hfpage->firstRecord(rid);
-       
-        while(1)
+        DataPageInfo* info;
+        char* record;
+        int recLen;
+        while (1)
         {
             if(status==FAIL) break;
-            
-            hfpage->returnRecord(rid,record,recLen);
-            info = (DataPageInfo *)record;
-            reccnt += info->recct;
+            hfpage->returnRecord(rid, record, recLen);
+            info = (DataPageInfo*)record;
+            count += info->recct;
 
-            tempRid=rid;
-            status = hfpage->nextRecord(tempRid,rid);
+            tempRid = rid;
+            status = hfpage->nextRecord(tempRid, rid);
         }
-        status = MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-        if(status!=OK)
+        status = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+        if (status != OK)
             return status;
     }
-   return reccnt;
+    return count;
 }
 
 
