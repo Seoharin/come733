@@ -150,7 +150,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if (returnStatus != OK)
                 return returnStatus;
             pinfo = (DataPageInfo*)recptr;
-            if (info->availspace > recLen) {
+            if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
                 Page* dataPage;
@@ -182,7 +182,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     //////////여기까지
     //No existing datapage has space left for record, create new data page
     DataPageInfo* info = new DataPageInfo();
-    Page* page;
+    Page* newpage;
     Status newStatus = newDataPage(info);
 
     if (newStatus != OK)
@@ -212,12 +212,12 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     //pin datapage for insertion
 
 
-    MINIBASE_BM->pinPage(info->pageId, page, 0, this->fileName);
+    MINIBASE_BM->pinPage(info->pageId, newpage, 0, this->fileName);
    
-    HFPage* hfpage = (HFPage*)page;
-    Status insertStatus = hfpage->insertRecord(recPtr, recLen, outRid);
+    HFPage* newhfpage = (HFPage*)newpage;
+    Status insertStatus = newhfpage->insertRecord(recPtr, recLen, outRid);
 
-    info1->availspace = hfpage->available_space();
+    info1->availspace = newhfpage->available_space();
 
     MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
     
