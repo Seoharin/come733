@@ -299,85 +299,65 @@ Status HeapFile::deleteRecord (const RID& rid)
 
 // *******************************************
 // updates the specified record in the heapfile.
-Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
+Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
 {
-   if(recPtr==NULL)
-         return MINIBASE_FIRST_ERROR(HEAPFILE,BAD_REC_PTR);
-    if(rid.slotNo < 0)
+    if (recPtr == NULL)
+        return MINIBASE_FIRST_ERROR(HEAPFILE, BAD_REC_PTR);
+    if (rid.slotNo < 0)
     {
-        return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_SLOTNO);
+        return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_SLOTNO);
     }
 
-    HFPage *hfpage;
-    Page *page;
-    DataPageInfo *pinfo;
-    RID currid, temp;
-    char *recptr;
-    int reclen;
-    
-    for(int i=0;i<directoryPages.size();i++)
+    for (int i = 0; i < directoryPages.size(); i++)
     {
-        hfpage = directoryPages[i];
-        page = (Page *)page;
-    
+        HFPage* hfpage = directoryPages[i];
+        Page* page = (Page*)hfpage;
         Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
         if (pinStatus != OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
-        
-        if(hfpage->firstRecord(currid)==OK)
+        RID currId, temp;
+        Status status = hfpage->firstRecord(currId);
+        char* record;
+        int recLength;
+        while (status == OK)
         {
-            while(1)
+            Status returnStatus = hfpage->returnRecord(currId, record, recLength);
+            if (returnStatus != OK)
+                return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+            DataPageInfo* info = (DataPageInfo*)record;
+            if (info->pageId == rid.pageNo)
             {
-                Status returnStatus = hfpage->returnRecord(currid, recptr, reclen);
-                if (returnStatus != OK)
-                    return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
-                
-                if(hfpage->returnRecord(currid,recptr,reclen)==OK)
-                {
-                    pinfo = (DataPageInfo*)recptr;
-                 if (pinfo->pageId == rid.pageNo)
-                 {
-                 Page* dataPage;
-                 Status pinStatus = MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
-                 if (pinStatus != OK)
+                Page* dataPage;
+                Status pinStatus = MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
+                if (pinStatus != OK)
                     return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
-                     
-                 HFPage* hfDataPage = (HFPage*)dataPage;
-                 char* origin;
-                 int len;
-                
-                 if(hfDataPage->returnRecord(rid,origin,len)==OK)
-                 {
-                    if(len!=reclen) return FAIL;
-                    memmove(origin, recPtr, recLen);
-                    
-                    pinStatus = MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
-                    if (pinStatus != OK)
-                        return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
-                    pinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-                    if (pinStatus != OK)
-                        return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
-                     
-                 }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
-               
-                 return OK;
-                }
-                 
-            }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
-            temp = currid;
-            if(hfpage->nextRecord(temp,currid)!=OK) break;
-           
+                HFPage* hfDataPage = (HFPage*)dataPage;
+                char* originalRecord;
+                int len;
+                Status status = hfDataPage->returnRecord(rid, originalRecord, len);
+                if (status != OK)
+                    return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
+                if (len != recLen)
+                    return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
+                memcpy(originalRecord, recPtr, recLen);
+                pinStatus = MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
+                if (pinStatus != OK)
+                    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+                pinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+                if (pinStatus != OK)
+                    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+                return status;
             }
-            
+            temp = currId;
+            status = hfpage->nextRecord(temp, currId);
         }
-       Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-       if (unpinStatus != OK)
+        Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+        if (unpinStatus != OK)
             return MINIBASE_CHAIN_ERROR(BUFMGR, unpinStatus);
     }
 
-  // fill in the body
-  return OK;
-}
+    // fill in the body
+    return OK;
 
 // ***************************************************
 // read record from file, returning pointer and length
