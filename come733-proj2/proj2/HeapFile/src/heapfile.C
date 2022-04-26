@@ -96,8 +96,7 @@ int HeapFile::getRecCnt()
         if (status != OK)
             return  status;
         
-        
-        status = hfpage->firstRecord(rid);
+ 
         if((hfpage->firstRecord(rid))==OK)
         {
             do{
@@ -105,7 +104,7 @@ int HeapFile::getRecCnt()
             info = (DataPageInfo*)record;
             rcnt += info->recct;
             curRid = rid;
-            status = hfpage->nextRecord(curRid, rid);
+                
             }while((hfpage->nextRecord(curRid,rid))==OK); 
         }
         
