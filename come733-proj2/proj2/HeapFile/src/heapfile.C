@@ -501,7 +501,7 @@ Status HeapFile::findDataPage(const RID& rid,
                         MINIBASE_BM->pinPage(rid.pageNo,dp,0,this->fileName);
                         rpdatapage = (HFPage *)dp;
                         rpdirpage = (HFPage *)page;
-                        rpDirPageId = pageNumber;
+                        rpDirPageId = pageNo;
                         rpDataPageId = rid.pageNo;
                         rpDataPageRid = rid;
                         return OK;
