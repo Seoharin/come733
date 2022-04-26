@@ -82,13 +82,13 @@ int HeapFile::getRecCnt()
     int rcnt = 0;
     HFPage *hfpage;
     Page * page;
-    RID rid, tempRid;
+    RID rid, curRid;
     DataPageInfo* info;
     char* record;
     int recLen;
+    int i=0;
     
-    for (int i = 0; i < directoryPages.size(); i++)
-    {
+    while(i<directoryPages.size()){
         hfpage = directoryPages[i];
         page = (Page*)hfpage;
         
@@ -102,17 +102,20 @@ int HeapFile::getRecCnt()
         while (1)
         {
             if(status!=OK) break;
+            
             hfpage->returnRecord(rid, record, recLen);
             info = (DataPageInfo*)record;
             rcnt += info->recct;
 
-            tempRid = rid;
-            status = hfpage->nextRecord(tempRid, rid);
+            curRid = rid;
+            status = hfpage->nextRecord(curRid, rid);
         }
         status = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
         if (status != OK)
             return status;
+        i++;
     }
+    
     return rcnt;
 }
 
