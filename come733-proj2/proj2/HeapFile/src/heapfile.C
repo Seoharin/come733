@@ -2,6 +2,8 @@
 #include <vector>
 #define DIRTY 1
 #define CLEAN 0
+#define T 1
+#define F 0
 // ******************************************************
 // Error messages for the heapfile layer
 
@@ -44,23 +46,28 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
 
     PageId start_pg;
     Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
-    
+
     if (already_status == OK) {
-        for (int i = 0; i < dirs.size(); i++) {
-            if (dirs[i].headerPageId == start_pg) {
-                directoryPages = dirs[i].pages;
+        int i=0;
+        while(1){
+            if(dirs[i].headerPageId==start_pg){
                 break;
             }
-        }
+            i++;
+       }
+        
+    directoryPages = dirs[i].pages;
     }
     else {
         directoryPages.clear();
     }
 
-    vector<char> fname(strlen(name));
-    this->fileName = fname;
-    this->file_deleted = 0; 
+    this->fileName = new char[strlen(name)];
+    for(int i=0;i<strlen(name);i++)
+        this->fileName[i]=name[i];
+    this->file_deleted = F;
 
+    
     // fill in the body
     returnStatus = OK;
    
