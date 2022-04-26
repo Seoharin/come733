@@ -129,10 +129,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     for (int i = 0; i < directoryPages.size(); i++) {
         HFPage* hfpage = directoryPages[i];
         Page* page = (Page*)hfpage;
-        Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-        if (status != OK) {
-            return status;
-        }
+        /*Status status = */MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+        //if (status != OK) {
+        //    return status;
+        //}
         RID rid, currId;
         status = hfpage->firstRecord(rid);
         if (status != OK)
