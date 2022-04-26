@@ -49,13 +49,10 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
 
     if (already_status == OK) {
         int i=0;
-        while(1){
-            if(dirs[i].headerPageId==start_pg){
-                break;
-            }
+        while(i<dirs.size()){
+            if(dirs[i].headerPageId==start_pg) break;
             i++;
-       }
-        
+       } 
     directoryPages = dirs[i].pages;
     }
     else {
