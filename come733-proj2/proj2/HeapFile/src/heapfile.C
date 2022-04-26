@@ -508,6 +508,8 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
                             PageId &allocDirPageId,/*Directory page having the first data page record*/
                             RID &allocDataPageRid)
 {
+    HFPage hfpage;
+    Page *page;
     RID rid;
     int pageId;
     Page *pg;
@@ -515,18 +517,18 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     //check existing pages
     for(int i=0;i<directoryPages.size();i++)
     {
-        HFPage *page = directoryPages[i];
+        hfpage = directoryPages[i];
 
-        if(page->available_space()>sizeof(DataPageInfo))
+        if(hfpage->available_space()>sizeof(DataPageInfo))
         {
-            pg = (Page *)page;
+            page = (Page *)hfpage;
           //  int num = MINIBASE_BM->getNumUnpinnedBuffers();
-            allocDirPageId = page->page_no();
-            Status pinStatus = MINIBASE_BM->pinPage(allocDirPageId,pg,page->empty(),this->fileName);
+            allocDirPageId = hfpage->page_no();
+            Status pinStatus = MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
             if(pinStatus!=OK)
                 return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
 
-            Status status = page->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
+            Status status = hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
             if(status!=OK)
                 return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
             Status unpinStatus = MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
@@ -547,7 +549,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     Status newStatus = MINIBASE_BM->newPage(pageId,pg,1);
     if(newStatus!=OK)
         return MINIBASE_CHAIN_ERROR(BUFMGR,newStatus);
-    dirPage = (HFPage *)pg;
+    dirPage = (HFPage *)page;
     dirPage->init(pageId);
     allocDirPageId = dirPage->page_no();
 
@@ -567,10 +569,10 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
         dirs.push_back(d);
     } else
     {
-        HFPage *pg = directoryPages[0];
+        HFPage *hpg = directoryPages[0];
         for(int i=0;i<dirs.size();i++)
         {
-            if(dirs[i].headerPageId==pg->page_no())
+            if(dirs[i].headerPageId==hpg->page_no())
                 dirs[i].pages = directoryPages;
         }
     }
