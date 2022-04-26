@@ -334,7 +334,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                          HFPage* hfDataPage = (HFPage*)dataPage;
                          char* origin;
                          int len;
-                         if(hfDataPage->returnRecord(rid,origin,len)==Ok){
+                         if(hfDataPage->returnRecord(rid,origin,len)==OK){
                              if(len==recLen){
                                  memmove(origin, recPtr, recLen);
                                  MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
