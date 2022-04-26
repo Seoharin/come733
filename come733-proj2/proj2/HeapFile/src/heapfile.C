@@ -40,30 +40,28 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
    
    int namelen = strlen(name);
-   if (namalen > MAX_NAME) {
+   if (namelen > MAX_NAME) {
         returnStatus = FAIL;
         return;
     }
+    
+    this->fileName = (char*) malloc(sizeof(char)*namelen);
+    for(int i=0;i<namelen;i++)
+        this->fileName[i]=name[i];
 
     PageId start_pg;
     Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
 
-    
-    
-    if (already_status == OK) {
+    if(already_status==FAIL) directoryPages.clear();
+    else{
        int i=0;
        while(1){
            if(dirs[i].headerPageId==start_pg) break;
        }
        directoryPages=dirs[i].pages;
     }
-    else {
-        directoryPages.clear();
-    }
-
-    this->fileName = new char[namelen];
-    for(int i=0;i<namelen;i++)
-        this->fileName[i]=name[i];
+ 
+   
     this->file_deleted = F;
 
     FileName = name;
