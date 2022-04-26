@@ -358,7 +358,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
 
     // fill in the body
     return OK;
-
+}
 // ***************************************************
 // read record from file, returning pointer and length
 Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
