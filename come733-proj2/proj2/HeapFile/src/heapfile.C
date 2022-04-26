@@ -100,9 +100,10 @@ int HeapFile::getRecCnt()
         if((hfpage->firstRecord(rid))==OK)
         {
             do{
-            hfpage->returnRecord(rid, record, recLen);
-            info = (DataPageInfo*)record;
-            rcnt += info->recct;
+            //hfpage->returnRecord(rid, record, recLen);
+            rcnt++;
+            //info = (DataPageInfo*)record;
+            //rcnt += info->recct;
             curRid = rid;
                 
             }while((hfpage->nextRecord(curRid,rid))==OK); 
