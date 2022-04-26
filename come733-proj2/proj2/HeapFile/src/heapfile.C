@@ -95,9 +95,8 @@ int HeapFile::getRecCnt()
         DataPageInfo* info;
         char* record;
         int recLen;
-        while (1)
+        while (status==OK)
         {
-            if(status==FAIL) break;
             hfpage->returnRecord(rid, record, recLen);
             info = (DataPageInfo*)record;
             count += info->recct;
