@@ -523,17 +523,15 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
             page = (Page*) hfpage;
           //  int num = MINIBASE_BM->getNumUnpinnedBuffers();
             allocDirPageId = hfpage->page_no();
-            Status pinStatus = MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
-            if(pinStatus!=OK)
-                return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
+            pinStatus = MINIBASE_BM->pinPage(allocDirPageId,page,hfpage->empty(),this->fileName);
+           
 
             Status status = hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
             if(status!=OK)
                 return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
-            Status unpinStatus = MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
-            if(unpinStatus!=OK)
-                return MINIBASE_CHAIN_ERROR(BUFMGR,unpinStatus);
-          //  num = MINIBASE_BM->getNumUnpinnedBuffers();
+            
+            MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
+          
             if(status==OK)
             {
                 return OK;
@@ -555,9 +553,9 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     Status status = dirPage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
     if(status!=OK)
         return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
-    status = MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
-    if(status!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,status);
+    
+    MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
+    
     directoryPages.push_back(dirPage);
     if(directoryPages.size()==1)
     {
