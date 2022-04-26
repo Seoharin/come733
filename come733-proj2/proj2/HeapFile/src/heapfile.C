@@ -319,11 +319,9 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
         hfpage = directoryPages[i];
         page = (Page*)hfpage;
         
-        //Status pinStatus =
-        MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
-        //if (pinStatus != OK)
-        //    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
         
+        MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
+       
         
         Status status = hfpage->firstRecord(currid);
         
@@ -348,20 +346,23 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                 if (len != recLen)
                     return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
                 memmove(origin, recPtr, recLen);
-                pinStatus = MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
-                if (pinStatus != OK)
-                    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
-                pinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-                if (pinStatus != OK)
-                    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+                //pinStatus = 
+                MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
+                //if (pinStatus != OK)
+                //    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+                //pinStatus = 
+                MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+                //if (pinStatus != OK)
+                //    return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
                 return status;
             }
             temp = currid;
             status = hfpage->nextRecord(temp, currid);
         }
-        Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-        if (unpinStatus != OK)
-            return MINIBASE_CHAIN_ERROR(BUFMGR, unpinStatus);
+        //Status unpinStatus = 
+        MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+        //if (unpinStatus != OK)
+        //    return MINIBASE_CHAIN_ERROR(BUFMGR, unpinStatus);
     }
 
     // fill in the body
