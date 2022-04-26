@@ -39,7 +39,8 @@ int recCount = 0;
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
    
-   if (strlen(name) > MAX_NAME) {
+   int namelen = strlen(name);
+   if (namalen > MAX_NAME) {
         returnStatus = FAIL;
         return;
     }
@@ -60,8 +61,8 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
         directoryPages.clear();
     }
 
-    this->fileName = new char[strlen(name)];
-    for(int i=0;i<strlen(name);i++)
+    this->fileName = new char[namelen];
+    for(int i=0;i<namelen;i++)
         this->fileName[i]=name[i];
     this->file_deleted = F;
 
