@@ -132,7 +132,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
         
         RID rid, currId;
-        status = hfpage->firstRecord(rid);
+        Status status = hfpage->firstRecord(rid);
         if (status != OK)
         {
             return status;
