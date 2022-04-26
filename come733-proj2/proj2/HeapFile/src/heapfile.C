@@ -152,76 +152,24 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
                                       pinfo->availspace = hfdatapage->available_space();
                                       pinfo->recct += 1;
                                       recCount+=1;
-                                      MINIBASE_BM->unpinPage(info->pageId, DIRTY, this->fileName);
+                                      MINIBASE_BM->unpinPage(pinfo->pageId, DIRTY, this->fileName);
                                       MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
                                   }
                            }
                         currid = rid;
                         if((hfpage->nextRecord(currid, rid))!=OK) break;
                        }
-                     
+                }
                 }
                 
             }
             MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);  
         }
        
-        //RID rid, currId;
-        //status = hfpage->firstRecord(rid);
-        //if (status != OK)
-        //{
-        //   return status;
-        //}
-        //char *record;
-        //int len;
-       /* while (status == OK) {
-           // Status returnStatus = hfpage->returnRecord(rid, record, len);
-            //if (returnStatus != OK)
-             //   return returnStatus;
-            DataPageInfo *info = (DataPageInfo *) record;
-            if (info->availspace > recLen) {
-                outRid.pageNo = info->pageId;
-                Page *dataPage;
-                Status pinStatus = MINIBASE_BM->pinPage(info->pageId, dataPage, 0, this->fileName);
-                if (pinStatus != OK)
-                    return pinStatus;
-                HFPage *hfdatapage = (HFPage *) dataPage;
-                Status insertStatus = hfdatapage->insertRecord(recPtr, recLen, outRid);
-                if(insertStatus!=OK)
-                    return MINIBASE_CHAIN_ERROR(HEAPFILE,insertStatus);
-                info->availspace = hfdatapage->available_space();
-                info->recct += 1;
-                recCount+=1;
-
-                pinStatus = MINIBASE_BM->unpinPage(info->pageId, DIRTY, this->fileName);
-                if (pinStatus != OK)
-                    return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-                pinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
-                if (pinStatus != OK)
-                    return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-             //   cout<<"Record count is "<<getRecCnt();
-               // recCount++;
-              //  cout<<"Record count is "<<recCount<<endl;
-                return insertStatus;
-
-            }
-            currId = rid;
-            status = hfpage->nextRecord(currId, rid);
-
-        }
-        */
-                                  
-                                
-        //Status unpinStatus = MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-        //if(unpinStatus!=OK)
-        //    return unpinStatus;
-
-    //No existing datapage has space left for record, create new data page
+        
     pinfo = new DataPageInfo();
-    //Page *page;
-    //Status newStatus = newDataPage(info);
-    if((newDataPage(pinfo))==OK)
-    {
+
+    if((newDataPage(pinfo))==OK) {
         pinfo->recct += 1;
         recCount+=1;
 
@@ -230,7 +178,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
         Page *pg;
         allocateDirSpace(pinfo,dirId,dirRid);
         MINIBASE_BM->pinPage(dirId,pg,0,this->fileName);
-         HFPage *dirhfpage = (HFPage *)pg;
+        HFPage *dirhfpage = (HFPage *)pg;
         char *rec;
         int reclength;
         dirhfpage->returnRecord(dirRid,rec,reclength);
@@ -244,52 +192,6 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
         MINIBASE_BM->unpinPage(pinfo->pageId,DIRTY,this->fileName);
     }
    
-                                  
-                                 
-    //if(newStatus!=OK)
-    //    return newStatus;
-
-    
-
-    //create directory entry for new page
-    //Status allocStatus = allocateDirSpace(info,dirId,dirRid);
-//MINIBASE_BM->pinPage(dirId,pg,0,this->fileName);
-
-    //HFPage *dirhfpage = (HFPage *)pg;
-    //char *rec;
-    //int reclength;
-    //Status returnStatus = dirhfpage->returnRecord(dirRid,rec,reclength);
-    //if(returnStatus !=OK)
-    //    return MINIBASE_FIRST_ERROR(HEAPFILE,RECNOTFOUND);
-   // DataPageInfo *info1 = (DataPageInfo*)rec;
-    //if(allocStatus!=OK)
-     //   return allocStatus;
-
-    //pin datapage for insertion
-
-/*
-    Status pinStatus = MINIBASE_BM->pinPage(info->pageId,page,0,this->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    HFPage *hfpage = (HFPage *)page;
-    Status insertStatus = hfpage->insertRecord(recPtr,recLen,outRid);
-
-    info1->availspace = hfpage->available_space();
-
-    pinStatus = MINIBASE_BM->unpinPage(dirId,DIRTY,this->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    //unpin to save datapage
-    Status unPinStatus = MINIBASE_BM->unpinPage(info->pageId,DIRTY,this->fileName);
-
-    if(unPinStatus!=OK)
-    {
-          // return unPinStatus;
-       return MINIBASE_CHAIN_ERROR(BUFMGR,unPinStatus);
-    }
-
-    return insertStatus;
-   */
     return OK;
 } 
 
