@@ -27,7 +27,6 @@ typedef struct{
 vector<directory> dirs;    //list of all directories for all files
 
 vector<HFPage*> directoryPages;   //holds the Directory pages for currently open file
-const char  *FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
@@ -54,7 +53,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     PageId start_pg;
     Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
 
-    if(already_status==FAIL) directoryPages.clear();
+    if(already_status!=OK) directoryPages.clear();
     else{
        int i=0;
        while(1){
@@ -63,8 +62,6 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
        directoryPages=dirs[i].pages;
     }
  
-    //FileName = name;
-    // fill in the body
     returnStatus = OK;
    
 }
@@ -82,25 +79,32 @@ HeapFile::~HeapFile()
 int HeapFile::getRecCnt()
 {
    // fill in the body
-    int count = 0;
+    int rcnt = 0;
+    HFPage *hfpage;
+    Page * page;
+    RID rid, tempRid;
+    DataPageInfo* info;
+    char* record;
+    int recLen;
+    
     for (int i = 0; i < directoryPages.size(); i++)
     {
-        HFPage* hfpage = directoryPages[i];
-        Page* page = (Page*)hfpage;
+        hfpage = directoryPages[i];
+        page = (Page*)hfpage;
+        
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
         if (status != OK)
             return  status;
-        RID rid, tempRid;
+        
+        
         status = hfpage->firstRecord(rid);
-        DataPageInfo* info;
-        char* record;
-        int recLen;
+      
         while (1)
         {
             if(status!=OK) break;
             hfpage->returnRecord(rid, record, recLen);
             info = (DataPageInfo*)record;
-            count += info->recct;
+            rcnt += info->recct;
 
             tempRid = rid;
             status = hfpage->nextRecord(tempRid, rid);
@@ -109,7 +113,7 @@ int HeapFile::getRecCnt()
         if (status != OK)
             return status;
     }
-    return count;
+    return rcnt;
 }
 
 
