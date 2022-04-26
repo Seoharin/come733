@@ -256,7 +256,7 @@ Status HeapFile::deleteRecord (const RID& rid)
     for(int i=0;i<directoryPages.size();i++)
     {
         hfpage = directoryPages[i];
-        page = (Page *)page;
+        page = (Page *)hfpage;
         MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
       
         if(hfpage->firstRecord(currid)==OK)
@@ -320,8 +320,10 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
         hfpage = directoryPages[i];
         page = (Page *)page;
     
-        MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
-       
+        Status pinStatus = MINIBASE_BM->pinPage(hfpage->page_no(), page, 0, this->fileName);
+        if (pinStatus != OK)
+            return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+        
         if(hfpage->firstRecord(currid)==OK)
         {
             while(1)
