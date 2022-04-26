@@ -490,14 +490,14 @@ Status HeapFile::findDataPage(const RID& rid,
     for(int i=0;i<directoryPages.size();i++)
     {
         hfpage = directoryPages[i];
-        PageNo = hfpage->page_no();
+        pageNo = hfpage->page_no();
         
         if(hfpage->firstRecord(currid)==OK){
             while(1){
                 if(hfpage->getRecord(currid,recptr,reclen)==OK){
                     pinfo = (DataPageInfo*)recptr;
                     if(pinfo->pageId==rid.pageNo){
-                        MINIBASE_BM->pinPage(pageNumber,page,0,this->fileName);
+                        MINIBASE_BM->pinPage(pageNo,page,0,this->fileName);
                         MINIBASE_BM->pinPage(rid.pageNo,dp,0,this->fileName);
                         rpdatapage = (HFPage *)dp;
                         rpdirpage = (HFPage *)page;
@@ -506,7 +506,7 @@ Status HeapFile::findDataPage(const RID& rid,
                         rpDataPageRid = rid;
                         return OK;
                     }
-                }else return MINIBASE_CHAIN_ERROR(HEAPFILE,getStatus);
+                }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
                 RID temp = currid;
                 if(hfpage->nextRecord(temp,currid)!=OK) break;
                 
