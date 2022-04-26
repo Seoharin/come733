@@ -93,8 +93,8 @@ int HeapFile::getRecCnt()
         page = (Page *)hfpage;
         
         Status status = MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-        if (status != OK)
-            return  status;
+        //if (status != OK)
+        //    return  status;
         
  
         if((hfpage->firstRecord(rid))==OK)
@@ -109,8 +109,8 @@ int HeapFile::getRecCnt()
         }
         
         status = MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
-        if (status != OK)
-            return status;
+       // if (status != OK)
+       //     return status;
         i++;
     }
     
