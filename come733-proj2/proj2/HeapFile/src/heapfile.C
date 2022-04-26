@@ -425,14 +425,12 @@ Scan *HeapFile::openScan(Status& status)
 Status HeapFile::deleteFile()
 {
     
-    MINIBASE_DB->delete_file_entry(this->fileName)  ;
+    MINIBASE_DB->delete_file_entry(this->fileName) ;
     this->file_deleted=T;
     
-    int i;
-    for( i=0;i<dirs.size();i++)
-    {
-        if(dirs[i].headerPageId == directoryPages[0]->page_no()) break;
-       
+    int i=0;
+    while(i<dirs.size()){
+        if(dirs[i++].headerPageId == directoryPages[0]->page_no()) break;
     }
     dirs.erase(dirs.begin()+i);
     return OK;
