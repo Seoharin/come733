@@ -84,7 +84,7 @@ int HeapFile::getRecCnt()
     Page * page;
     RID rid, temp;
     DataPageInfo* pinfo;
-    char* record;
+    char* recptr;
     int recLen;
     int i=0;
     
@@ -98,9 +98,9 @@ int HeapFile::getRecCnt()
         if((hfpage->firstRecord(rid))==OK)
         {
             do{
-            hfpage->returnRecord(rid, record, recLen);
+            hfpage->returnRecord(rid, recptr, recLen);
             temp = rid;
-            pinfo = (DataPageInfo*)record;
+            pinfo = (DataPageInfo*)recptr;
             rcnt = rcnt+pinfo->recct;
           
             }while((hfpage->nextRecord(temp,rid))==OK); 
