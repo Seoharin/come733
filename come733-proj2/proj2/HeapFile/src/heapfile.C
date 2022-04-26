@@ -528,7 +528,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
             if(hfpage->insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid)==OK){
                 MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
                 return OK;
-            }else  return MINIBASE_CHAIN_ERROR(HEAPFILE,status);
+            }else  return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
         }
     }
 
