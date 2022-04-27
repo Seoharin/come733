@@ -552,7 +552,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
         } else {
         HFPage *hpg = directoryPages[0];
         
-        i=0
+        i=0;
         while(i<dirs.size()){
             if(dirs[i].headerPageId==hpg->page_no()) dirs[i++].pages=directoryPages; 
         }
