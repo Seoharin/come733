@@ -39,3 +39,22 @@ search datapage matching at given pageNo
 
 - allocateDirSpace
 allocate dirctory space for given page
+
+
+
+[scan.c]
+
+- getNext
+return nextDataPage and give tag for scaned page
+
+- firstDataPage
+Copy data about first page
+check whether pin page is clean or not
+
+- nextDataPage
+return nextDirPage when next record is not ready
+make errors unpin page is not ready
+
+- nextDirPage
+check heap file and take directory information
+
