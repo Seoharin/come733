@@ -181,14 +181,14 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     }
     //////////여기까지
     //No existing datapage has space left for record, create new data page
-    DataPageInfo* info = new DataPageInfo();
+    DataPageInfo* newinfo = new DataPageInfo();
     Page* newpage;
-    Status newStatus = newDataPage(info);
+    Status newStatus = newDataPage(newinfo);
 
     if (newStatus != OK)
         return newStatus;
 
-    info->recct += 1;
+    newinfo->recct += 1;
     recCount += 1;
 
     PageId dirId, dataId;
@@ -196,7 +196,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     Page* pg;
 
     //create directory entry for new page
-    Status allocStatus = allocateDirSpace(info, dirId, dirRid);
+    Status allocStatus = allocateDirSpace(newinfo, dirId, dirRid);
     MINIBASE_BM->pinPage(dirId, pg, 0, this->fileName);
 
     HFPage* dirhfpage = (HFPage*)pg;
@@ -212,7 +212,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     //pin datapage for insertion
 
 
-    MINIBASE_BM->pinPage(info->pageId, newpage, 0, this->fileName);
+    MINIBASE_BM->pinPage(newinfo->pageId, newpage, 0, this->fileName);
    
     HFPage* newhfpage = (HFPage*)newpage;
     Status insertStatus = newhfpage->insertRecord(recPtr, recLen, outRid);
@@ -241,7 +241,7 @@ Status HeapFile::deleteRecord (const RID& rid)
     DataPageInfo *pinfo;
     RID currid,temp;
     char *recptr;
-    int reclen;
+    int i,reclen;
     Status status;
 
     
