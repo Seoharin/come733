@@ -554,9 +554,10 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
         
         i=0;
         while(i<dirs.size()){
-            if(dirs[i].headerPageId==hpg->page_no()) dirs[i++].pages=directoryPages; 
+            if(dirs[i].headerPageId==hpg->page_no())
+                dirs[i++].pages=directoryPages; 
         }
-        
+      }
         
      }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
     
