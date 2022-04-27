@@ -161,7 +161,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                
                      return OK;
                     
-                }else return MINIBASE_CHAIN_ERROR(HEAPFILE, insertStatus);
+                }else return MINIBASE_CHAIN_ERROR(HEAPFILE, FAIL);
                 
             }
             currid = rid;
