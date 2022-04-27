@@ -425,10 +425,12 @@ Status HeapFile::newDataPage(DataPageInfo *dpinfop)
     newhfpage = (HFPage *)newpage;
     newhfpage->init(pageid);
 
-
-    dpinfop->availspace = newhfpage->available_space();
+    
     dpinfop->pageId = pageid;
     dpinfop->recct = 0;
+    dpinfop->availspace = newhfpage->available_space();
+    
+    
 
     MINIBASE_BM->unpinPage(pageid,DIRTY,this->fileName);
    
@@ -471,11 +473,12 @@ Status HeapFile::findDataPage(const RID& rid,
                     if(pinfo->pageId==rid.pageNo){
                         MINIBASE_BM->pinPage(pageNo,page,0,this->fileName);
                         MINIBASE_BM->pinPage(rid.pageNo,dp,0,this->fileName);
-                        rpdatapage = (HFPage *)dp;
-                        rpdirpage = (HFPage *)page;
                         rpDirPageId = pageNo;
                         rpDataPageId = rid.pageNo;
                         rpDataPageRid = rid;
+                        rpdatapage = (HFPage *)dp;
+                        rpdirpage = (HFPage *)page;
+               
                         return OK;
                     }
                 }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
