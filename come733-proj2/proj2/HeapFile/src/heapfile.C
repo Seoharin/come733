@@ -128,8 +128,8 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         return MINIBASE_FIRST_ERROR(HEAPFILE, NO_SPACE);
     // fill in the body
     HFPage* hfpage;
-    Page *page;
-    DataPageInfo * pinfo;
+    Page *page,newpage;
+    DataPageInfo * pinfo, newinfo;
     RID rid,currid;
     char *recptr;
     int reclen;
@@ -181,10 +181,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     }
     //////////여기까지
     //No existing datapage has space left for record, create new data page
-    DataPageInfo* newinfo = new DataPageInfo();
-    Page* newpage;
+    newinfo = (DataPageInfo*)malloc(sizeof(DataPageInfo));
+    newpage;
     Status newStatus = newDataPage(newinfo);
-
+   
     if (newStatus != OK)
         return newStatus;
 
