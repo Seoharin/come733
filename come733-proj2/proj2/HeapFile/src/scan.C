@@ -11,33 +11,41 @@
 #include "hfpage.h"
 #include "buf.h"
 #include "db.h"
-#include <vector>
 
-extern vector<HFPage*> directoryPages;
-static const int namelen = 24;
-struct Rec
-{
-    int ival;
-    float fval;
-    char name[namelen];
-};
-extern const char * FileName;
+#define DIRTY 1
+#define CLEAN 0
+
+
+
+
+
+
+
+
+
+extern vector<HFPage*> directoryPages; //current opened directory pages
+char *record;
+int recLen;
 
 // *******************************************
 // The constructor pins the first page in the file
 // and initializes its private data members from the private data members from hf
+
+
 Scan::Scan (HeapFile *hf, Status& status)
 {
   // put your code here
   init(hf);
   status = OK;
+  
 }
 
 // *******************************************
 // The deconstructor unpin all pages.
 Scan::~Scan()
 {
-  // put your code here
+    Status status;
+    status = reset();
 }
 
 // *******************************************
@@ -45,35 +53,23 @@ Scan::~Scan()
 // Also returns the RID of the retrieved record.
 Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
 {
-    RID curr;
-    char *record;
-    if(this->scanIsDone==1) {
-        MINIBASE_BM->unpinPage(this->dirPageId,0,_hf->fileName);
-        MINIBASE_BM->unpinPage(this->dataPageId,0,_hf->fileName);
+   
+    if(scanIsDone!=0) {
+        MINIBASE_BM->unpinPage(dirPageId,CLEAN,_hf->fileName);
+        MINIBASE_BM->unpinPage(dataPageId,CLEAN,_hf->fileName);
 
         return DONE;
     }
 
 
-    Status status = this->dataPage->returnRecord(this->userRid,record,recLen);
-    if(status!=OK)
-    {
-        status = nextDataPage();
-        if(status!=OK)
-            return status;
-        this->dataPage->returnRecord(this->userRid,record,recLen);
-        memcpy(recPtr,record,recLen);
-        return OK;
-    }
- //   this->dataPage->returnRecord(this->userRid,record,recLen);
+    Status sts = dataPage->returnRecord(userRid,record,recLen);
+
     memcpy(recPtr,record,recLen);
-    rid = this->userRid;
-   status =this->dataPage->nextRecord(rid,this->userRid);
-    if(status!=OK) {
-       status = nextDataPage();
-       if(status!=OK)
-       {
-           this->scanIsDone=1;
+    rid = userRid;
+    if(dataPage->nextRecord(rid,userRid)!=OK) {
+       sts = nextDataPage();
+       if(sts!=OK){
+           scanIsDone=1;
        }
     }
     return OK;
@@ -83,6 +79,7 @@ Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
 // Do all the constructor work.
 Status Scan::init(HeapFile *hf)
 {
+  // put your code here
   this->_hf = hf;
   firstDataPage();
   return OK;
@@ -100,106 +97,170 @@ Status Scan::reset()
 // Copy data about first page in the file.
 Status Scan::firstDataPage()
 {
-   this->dirPage = directoryPages[0];
-    Page *page = (Page *)this->dirPage;
-    Status pinStatus = MINIBASE_BM->pinPage(dirPage->page_no(),page,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    Status status = dirPage->firstRecord(this->dataPageRid);
-    if(status!=OK)
-        return status;
-    this->dirPageId = dirPage->page_no();
-    char *record;
-    int recLen;
-    status = dirPage->returnRecord(this->dataPageRid,record,recLen);
-    if(status!=OK)
+    
+    Page *page1, *page2;
+    DataPageInfo *info;
+    dirPage = directoryPages[0];
+    
+    
+    page1 = (Page *)dirPage;
+    
+    if(MINIBASE_BM->pinPage(dirPage->page_no(),page1,CLEAN,_hf->fileName)!=OK){
+        Status pinNow =MINIBASE_BM->pinPage(dirPage->page_no(),page1,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+        
+    }else if(dirPage->firstRecord(dataPageRid)!=OK){
+        Status sts = dirPage->firstRecord(dataPageRid);
+        return sts;
+    }
+    
+
+
+    dirPageId = dirPage->page_no();
+    if(dirPage->returnRecord(dataPageRid,record,recLen)!=OK){
         return MINIBASE_FIRST_ERROR(HEAPFILE,RECNOTFOUND);
-    DataPageInfo *info = (DataPageInfo *)record;
-    this->dataPageId = info->pageId;
-    Page *dp;
-    pinStatus =  MINIBASE_BM->pinPage(this->dataPageId,dp,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    this->dataPage = (HFPage *)dp;
+    }
+
+
+
+    info = (DataPageInfo *)record;
+    dataPageId = info->pageId;
+    if(MINIBASE_BM->pinPage(dataPageId,page2,CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->pinPage(dataPageId,page2,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+    }
+
+
+
+    dataPage = (HFPage *)page2;
     scanIsDone=0;
-    this->nxtUserStatus= this->dataPage->firstRecord(this->userRid);
-
-}
-
-// *******************************************
-// Retrieve the next data page.
-Status Scan::nextDataPage(){
- RID nextRid;
-   Status status = this->dirPage->nextRecord(this->dataPageRid,nextRid);
-   if(status!=OK)
-   {
-      return nextDirPage();
-   }
-    this->dataPageRid = nextRid;
-   Status pinStatus = MINIBASE_BM->unpinPage(this->dataPageId,0,_hf->fileName);
-   if(pinStatus!=OK)
-       return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-   char *record;
-   int recLen;
-   Status returnStatus = this->dirPage->returnRecord(nextRid,record,recLen);
-    if(returnStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND)   ;
-    DataPageInfo *info = (DataPageInfo *)record;
-    this->dataPageId = info->pageId;
-    Page *pg;
-    pinStatus = MINIBASE_BM->pinPage(this->dataPageId,pg,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND)   ;
-    this->dataPage = (HFPage *)pg;
-    this->userRid.pageNo = info->pageId;
-    this->nxtUserStatus= this->dataPage->firstRecord(this->userRid);
+    nxtUserStatus= dataPage->firstRecord(this->userRid);
 
     return OK;
 }
 
+
+
+
+
+// *******************************************
+// Retrieve the next data page.
+Status Scan::nextDataPage()
+{
+    RID nextDP;
+    Page *page;
+    
+    
+    if(dirPage->nextRecord(dataPageRid,nextDP)!=OK){
+       return nextDirPage();
+    }
+
+
+
+    dataPageRid = nextDP;
+    
+    if(MINIBASE_BM->unpinPage(dataPageId,CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->unpinPage(dataPageId,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+
+    }else if(this->dirPage->returnRecord(nextDP,record,recLen)!=OK){
+        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND);
+    }
+    
+
+
+    DataPageInfo *info = (DataPageInfo *)record;
+    dataPageId = info->pageId;
+    if(MINIBASE_BM->pinPage(dataPageId,page,CLEAN,_hf->fileName)!=OK){
+        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND);
+    }
+    
+
+
+    dataPage = (HFPage *)page;
+    userRid.pageNo = info->pageId;
+    nxtUserStatus= dataPage->firstRecord(userRid);
+   
+   return OK;
+}
+
+
+
+
+
 // *******************************************
 // Retrieve the next directory page.
 Status Scan::nextDirPage() {
-   int currId = this->dirPageId;
-    int index;
-    for(int i=0;i<directoryPages.size();i++)
-    {
-        HFPage *pg = directoryPages[i];
-        if(pg->page_no()==currId) {
-            index = i;
-            break;
-        }
-    }
-    if(index==directoryPages.size()-1)
-        return DONE;
-    Status pinStatus = MINIBASE_BM->unpinPage(currId,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    pinStatus = MINIBASE_BM->unpinPage(dataPage->page_no(),0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    index++;
-    this->dirPageId = directoryPages[index]->page_no();
-    this->dirPage = directoryPages[index];
-    Page *pg = (Page *)directoryPages[index];
-    pinStatus = MINIBASE_BM->pinPage(this->dirPageId,pg,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    HFPage *dirPage = directoryPages[index];
-    dirPage->firstRecord(this->dataPageRid);
+
+
+
+    Page *page1, *page2;
+    HFPage *hfpg, *dirPage;
+    DataPageInfo *info;
+
+    int dirPgId = dirPageId;
+    int idx;
     char *record;
     int recLen;
-    Status returnStatus = dirPage->returnRecord(this->dataPageRid,record,recLen);
-    if(returnStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND) ;
-    DataPageInfo *info = (DataPageInfo *)record;
-    this->dataPageId = info->pageId;
-    Page *dp;
-    pinStatus = MINIBASE_BM->pinPage(info->pageId,dp,0,_hf->fileName);
-    if(pinStatus!=OK)
-        return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    this->dataPage = (HFPage *)dp;
-    this->nxtUserStatus=this->dataPage->firstRecord(this->userRid);
+    int i = 0;
+    int d = directoryPages.size();
+
+    while(d>i)
+    {
+        hfpg = directoryPages[i];
+        if(hfpg->page_no()==dirPgId) {
+            idx = i;
+            break;
+        }
+        i++;
+    }
+
+    int dpsize = directoryPages.size()-1;
+    if(idx==dpsize){
+        return DONE;
+    }
+
+    
+    if(MINIBASE_BM->unpinPage(dirPgId,CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->unpinPage(dirPgId,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+
+    } else if(MINIBASE_BM->unpinPage(dataPage->page_no(),CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->unpinPage(dataPage->page_no(),CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+    }
+    
+    idx++;
+    this->dirPageId = directoryPages[idx]->page_no();
+    this->dirPage = directoryPages[idx];
+    page1 = (Page *)directoryPages[idx];
+    
+    
+    
+    if(MINIBASE_BM->pinPage(dirPageId,page1,CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->pinPage(dirPageId,page1,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+    }
+    
+
+    dirPage = directoryPages[idx];
+    dirPage->firstRecord(dataPageRid);
+    
+    
+    if(dirPage->returnRecord(dataPageRid,record,recLen)!=OK){
+        return MINIBASE_CHAIN_ERROR(HEAPFILE,RECNOTFOUND);
+    }
+    
+    info = (DataPageInfo *)record;
+    dataPageId = info->pageId;
+    
+    if(MINIBASE_BM->pinPage(info->pageId,page2,CLEAN,_hf->fileName)!=OK){
+        Status pinNow = MINIBASE_BM->pinPage(info->pageId,page2,CLEAN,_hf->fileName);
+        return MINIBASE_CHAIN_ERROR(BUFMGR,pinNow);
+    }
+
+    dataPage = (HFPage *)page2;
+    nxtUserStatus=dataPage->firstRecord(userRid);
 
   // put your code here
   return OK;
