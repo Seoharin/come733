@@ -545,9 +545,9 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
          directoryPages.push_back(newpage);
          if(directoryPages.size()==1) {
             MINIBASE_DB->add_file_entry(this->fileName,newpage->page_no());
-            directory d;
-            d.pages = directoryPages;
-            d.headerPageId = newpage->page_no();
+            pagedirectory pd;
+            pd.pages = directoryPages;
+            pd.headerPageId = newpage->page_no();
             all_directories.push_back(d);
         } else {
         HFPage *hpg = directoryPages[0];
