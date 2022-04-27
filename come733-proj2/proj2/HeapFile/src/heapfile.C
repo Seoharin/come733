@@ -125,9 +125,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
 
     if (recLen >= MINIBASE_PAGESIZE)
         return MINIBASE_FIRST_ERROR(HEAPFILE, NO_SPACE);
-    // fill in the body
-    HFPage* hfpage;
-    Page *page,*newpage;
+    
+    
+    HFPage* hfpage,*hfdatapage;
+    Page *page,*datapage,*newpage;
     DataPageInfo* pinfo, *newinfo;
     RID rid,currid;
     char *recptr;
@@ -140,44 +141,40 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         
         hfpage->firstRecord(rid);
         
-        Status status=OK;
-        while (status == OK) {
-            Status returnStatus = hfpage->returnRecord(rid, recptr, reclen);
-           // if (returnStatus != OK)
-            //    return returnStatus;
+        while (1) {
+            hfpage->returnRecord(rid, recptr, reclen);
+           
             pinfo = (DataPageInfo*)recptr;
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
-                Page* dataPage;
-                MINIBASE_BM->pinPage(pinfo->pageId, dataPage, 0, this->fileName);
+                MINIBASE_BM->pinPage(pinfo->pageId, datapage, 0, this->fileName);
+                hfdatapage = (HFPage*)datapage;
                 
-                HFPage* hfdatapage = (HFPage*)dataPage;
-                Status insertStatus = hfdatapage->insertRecord(recPtr, recLen, outRid);
-                if (insertStatus != OK)
-                    return MINIBASE_CHAIN_ERROR(HEAPFILE, insertStatus);
-                pinfo->availspace = hfdatapage->available_space();
-                pinfo->recct += 1;
-                recCount += 1;
+                if(hfdatapage->insertRecord(recPtr,recLen,outRid)==OK){
+                     pinfo->availspace = hfdatapage->available_space();
+                     pinfo->recct += 1;
+                     recCount += 1;
 
-                MINIBASE_BM->unpinPage(pinfo->pageId, DIRTY, this->fileName);
-                
-                MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
+                     MINIBASE_BM->unpinPage(pinfo->pageId, DIRTY, this->fileName);
+                     MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
                
-                return insertStatus;
-
+                     return OK;
+                    
+                }else return MINIBASE_CHAIN_ERROR(HEAPFILE, insertStatus);
+                
             }
             currid = rid;
-            status = hfpage->nextRecord(currid, rid);
-
+            if(hfpage->nextRecord(currid,rid)!=OK) break;
+           
         }
         MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
         
     }
-    //////////여기까지
-    //No existing datapage has space left for record, create new data page
-    newinfo = (DataPageInfo*)malloc(sizeof(DataPageInfo));
+   
     
+    newinfo = (DataPageInfo*)malloc(sizeof(DataPageInfo));
+  
     newDataPage(newinfo);
    
     newinfo->recct =newinfo->recct+ 1;
