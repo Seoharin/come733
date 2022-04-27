@@ -140,7 +140,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         
         hfpage->firstRecord(rid);
         
-        
+        Status status=OK;
         while (status == OK) {
             Status returnStatus = hfpage->returnRecord(rid, recptr, reclen);
            // if (returnStatus != OK)
