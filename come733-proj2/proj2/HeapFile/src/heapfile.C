@@ -38,8 +38,10 @@ int recCount = 0;
 // Constructor
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
-   
-   int namelen = strlen(name);
+   PageId start_pg;
+   int i, namelen;
+    
+   namelen = strlen(name);
    if (namelen > MAX_NAME) {
         returnStatus = FAIL;
         return;
@@ -48,15 +50,12 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     this->file_deleted = F;
     
     this->fileName = (char*) malloc(sizeof(char)*namelen);
-    for(int i=0;i<namelen;i++)
+    for(i=0;i<namelen;i++)
         this->fileName[i]=name[i];
 
-    PageId start_pg;
-    Status already_status = MINIBASE_DB->get_file_entry(name, start_pg);
-
-    if(already_status!=OK) directoryPages.clear();
+    if( MINIBASE_DB->get_file_entry(name, start_pg)!=OK) directoryPages.clear();
     else{
-       int i=0;
+           i=0;
        while(1){
            if(dirs[i].headerPageId==start_pg) break;
            i++;
