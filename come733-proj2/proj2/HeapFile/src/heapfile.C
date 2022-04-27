@@ -282,12 +282,12 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
     {
         return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_SLOTNO);
     }
-    HFPage * hfpage;
-    Page * page;
+    HFPage * hfpage, *srchfpage;
+    Page * page, *srcpage;
     DataPageInfo * pinfo;
     RID currid, temp;
-    char* recptr;
-    int reclen;
+    char* recptr, *srcptr;
+    int reclen, srclen;
 
     for (int i = 0; i < directoryPages.size(); i++)
     {
@@ -302,15 +302,13 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                 if(hfpage->returnRecord(currid, recptr,reclen)==OK){
                     pinfo = (DataPageInfo*) recptr;
                     if(pinfo->pageId == rid.pageNo){
-                         Page* dataPage;
-                         MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
+                        
+                         MINIBASE_BM->pinPage(rid.pageNo, srcpage, 0, this->fileName);
                          
-                         HFPage* hfDataPage = (HFPage*)dataPage;
-                         char* origin;
-                         int len;
-                         if(hfDataPage->returnRecord(rid,origin,len)==OK){
-                             if(len==recLen){
-                                 memmove(origin, recPtr, recLen);
+                         HFPage* srchfpage = (HFPage*)srcpage;
+                         if(srchfpage->returnRecord(rid,srcptr,srclen)==OK){
+                             if(srclen==recLen){
+                                 memmove(srcptr, recPtr, recLen);
                                  MINIBASE_BM->unpinPage(rid.pageNo, DIRTY, this->fileName);
                                  MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
                                  
