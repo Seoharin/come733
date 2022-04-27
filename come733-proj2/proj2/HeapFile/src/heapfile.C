@@ -128,7 +128,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     if (recLen >= MINIBASE_PAGESIZE)
         return MINIBASE_FIRST_ERROR(HEAPFILE, NO_SPACE);
     
-    
+    PageId directoryid;
     HFPage* hfpage,*hfdatapage, *directoryhfpage;
     Page *page,*datapage,*newpage,*pg;
     DataPageInfo* pinfo, *newinfo,*pinfo2;
