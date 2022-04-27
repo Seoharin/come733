@@ -136,22 +136,15 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         hfpage = directoryPages[i];
         page = (Page*)hfpage;
         MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+       
         
-        //if(hfpage->firstRecord(rid)==OK){
-            
-         
+        hfpage->firstRecord(rid);
         
-        
-        Status status = hfpage->firstRecord(rid);
-        //if (status != OK)
-        //{
-        //    return status;
-        //}
         
         while (status == OK) {
             Status returnStatus = hfpage->returnRecord(rid, recptr, reclen);
-            if (returnStatus != OK)
-                return returnStatus;
+           // if (returnStatus != OK)
+            //    return returnStatus;
             pinfo = (DataPageInfo*)recptr;
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
