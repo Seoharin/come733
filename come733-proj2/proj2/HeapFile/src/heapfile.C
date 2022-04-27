@@ -203,7 +203,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     if(dirhfpage->returnRecord(dirRid,rec,reclength)==OK){
         info1 = (DataPageInfo*)rec;
         
-    }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND)
+    }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
     
 
     //pin datapage for insertion
@@ -217,8 +217,6 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     info1->availspace = newhfpage->available_space();
 
     MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
-    
-    //unpin to save datapage
     MINIBASE_BM->unpinPage(newinfo->pageId, DIRTY, this->fileName);
 
    
