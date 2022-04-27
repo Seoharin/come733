@@ -1,3 +1,5 @@
+Team 3 : Kang Yeondae, Seoharin
+
 [heapfile.c]
 - heapfile
 1. check len(name)<MAX_NAME
