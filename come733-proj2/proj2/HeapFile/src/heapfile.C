@@ -417,20 +417,20 @@ Status HeapFile::newDataPage(DataPageInfo *dpinfop)
     
     if(dpinfop==NULL) return FAIL;
     
-    int dataPageId;
-    Page *dataPageVar;
-    HFPage *dataPage;
-    MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
+    int pageid;
+    Page *newpage;
+    HFPage *newhfpage;
+    MINIBASE_BM->newPage(pageid,newpage,1);
     
-    dataPage = (HFPage *)dataPageVar;
-    dataPage->init(dataPageId);
+    newhfpage = (HFPage *)newpage;
+    newhfpage->init(pageid);
 
 
-    dpinfop->availspace = dataPage->available_space();
-    dpinfop->pageId = dataPageId;
+    dpinfop->availspace = newhfpage->available_space();
+    dpinfop->pageId = pageid;
     dpinfop->recct = 0;
 
-    MINIBASE_BM->unpinPage(dataPageId,DIRTY,this->fileName);
+    MINIBASE_BM->unpinPage(pageid,DIRTY,this->fileName);
    
     return OK;
 }
