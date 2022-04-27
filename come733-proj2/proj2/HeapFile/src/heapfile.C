@@ -135,6 +135,8 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     RID rid,currid;
     char *recptr;
     int reclen;
+    
+    //if datapage has space 
     for (int i = 0; i < directoryPages.size(); i++) {
         hfpage = directoryPages[i];
         page = (Page*)hfpage;
@@ -175,6 +177,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     }
    
     
+    //if datapage hasn't space, create new data page
     newinfo = (DataPageInfo*)malloc(sizeof(DataPageInfo));
   
     newDataPage(newinfo);
@@ -183,34 +186,31 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     reccnt ==reccnt+ 1;
 
     
-    
-    PageId dirId, dataId;
-    RID dirRid;
+ 
+    PageId directoryid, dataid;
+    RID directoryrid;
     Page* pg;
 
-    //create directory entry for new page
-    allocateDirSpace(newinfo, dirId, dirRid);
-    MINIBASE_BM->pinPage(dirId, pg, 0, this->fileName);
+    
+    allocateDirSpace(newinfo, directoryid, directoryrid);
+    MINIBASE_BM->pinPage(directoryid, pg, 0, this->fileName);
 
-    HFPage* dirhfpage = (HFPage*)pg;
-    char* rec;
-    int reclength;
-    DataPageInfo *info1;
-    if(dirhfpage->returnRecord(dirRid,rec,reclength)==OK){
-        info1 = (DataPageInfo*)rec;
+    HFPage* directoryhfpage = (HFPage*)pg;
+    char* recptr2;
+    int reclen2;
+    DataPageInfo *pinfo2;
+    if(directoryhfpage->returnRecord(directoryrid,recptr2,reclen2)==OK){
+        pinfo2 = (DataPageInfo*)recptr2;
         
     }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
     
-
-    //pin datapage for insertion
-
 
     MINIBASE_BM->pinPage(newinfo->pageId, newpage, 0, this->fileName);
    
     HFPage* newhfpage = (HFPage*)newpage;
     if(newhfpage->insertRecord(recPtr,recLen,outRid)==OK){
-        info1->availspace = newhfpage->available_space();
-        MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
+        pinfo2->availspace = newhfpage->available_space();
+        MINIBASE_BM->unpinPage(directoryid, DIRTY, this->fileName);
         MINIBASE_BM->unpinPage(newinfo->pageId, DIRTY, this->fileName);
         return OK;
     }else return FAIL;
@@ -415,7 +415,7 @@ Status HeapFile::deleteFile()
     }
     all_directories.erase(all_directories.begin()+i);
     return OK;
-    // fill in the body
+   
 }
 
 // ****************************************************************
@@ -511,7 +511,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     int pageId;
     int i;
     
-    //check existing pages
+    
     for(int i=0;i<directoryPages.size();i++)
     {
         hfpage = directoryPages[i];
@@ -531,7 +531,7 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
     }
 
 
-    //no space, so create new directory page
+    
     HFPage *newpage;
     MINIBASE_BM->newPage(pageId,page,1);
    
