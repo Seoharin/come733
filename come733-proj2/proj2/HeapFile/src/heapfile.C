@@ -303,9 +303,8 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
                     pinfo = (DataPageInfo*) recptr;
                     if(pinfo->pageId == rid.pageNo){
                          Page* dataPage;
-                         Status pinStatus = MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
-                         if (pinStatus != OK)
-                            return MINIBASE_CHAIN_ERROR(BUFMGR, pinStatus);
+                         MINIBASE_BM->pinPage(rid.pageNo, dataPage, 0, this->fileName);
+                         
                          HFPage* hfDataPage = (HFPage*)dataPage;
                          char* origin;
                          int len;
