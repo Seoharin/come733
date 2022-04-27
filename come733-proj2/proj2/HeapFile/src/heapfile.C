@@ -20,19 +20,21 @@ static const char *hfErrMsgs[] = {
     "file has already been deleted",
 };
 
+
+vector<HFPage*> directoryPages;   //current opened directory pages
+
 typedef struct{
     PageId headerPageId;
     vector<HFPage*> pages;
-}directory;          //mapping of page IDs to directory pages
+}pagedirectory;        
+//pagedirectory has headerpageid and pages
 
-vector<directory> dirs;    //list of all directories for all files
-
-vector<HFPage*> directoryPages;   //holds the Directory pages for currently open file
+vector<pagedirectory> all_directories;    //lise of all directories
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
 
-int recCount = 0;
+int reccnt = 0;
 
 // ********************************************************
 // Constructor
@@ -57,10 +59,10 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     else{
            i=0;
        while(1){
-           if(dirs[i].headerPageId==start_pg) break;
+           if(all_directories[i].headerPageId==start_pg) break;
            i++;
        }
-       directoryPages=dirs[i].pages;
+       directoryPages=all_directories[i].pages;
     }
  
     returnStatus = OK;
@@ -154,7 +156,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                 if(hfdatapage->insertRecord(recPtr,recLen,outRid)==OK){
                      pinfo->availspace = hfdatapage->available_space();
                      pinfo->recct += 1;
-                     recCount += 1;
+                     reccnt += 1;
 
                      MINIBASE_BM->unpinPage(pinfo->pageId, DIRTY, this->fileName);
                      MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
@@ -178,7 +180,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     newDataPage(newinfo);
    
     newinfo->recct =newinfo->recct+ 1;
-    recCount ==recCount+ 1;
+    reccnt ==reccnt+ 1;
 
     
     
@@ -206,15 +208,13 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     MINIBASE_BM->pinPage(newinfo->pageId, newpage, 0, this->fileName);
    
     HFPage* newhfpage = (HFPage*)newpage;
-    Status insertStatus = newhfpage->insertRecord(recPtr, recLen, outRid);
-
-    info1->availspace = newhfpage->available_space();
-
-    MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
-    MINIBASE_BM->unpinPage(newinfo->pageId, DIRTY, this->fileName);
-
-   
-    return insertStatus;
+    if(newhfpage->insertRecord(recPtr,recLen,outRid)==OK){
+        info1->availspace = newhfpage->available_space();
+        MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
+        MINIBASE_BM->unpinPage(newinfo->pageId, DIRTY, this->fileName);
+        return OK;
+    }else return FAIL;
+  
 }
 
 
@@ -410,10 +410,10 @@ Status HeapFile::deleteFile()
     this->file_deleted=T;
     
     int i=0;
-    while(i<dirs.size()){
-        if(dirs[i++].headerPageId == directoryPages[0]->page_no()) break;
+    while(i<all_directories.size()){
+        if(all_directories[i++].headerPageId == directoryPages[0]->page_no()) break;
     }
-    dirs.erase(dirs.begin()+i);
+    all_directories.erase(all_directories.begin()+i);
     return OK;
     // fill in the body
 }
@@ -548,14 +548,14 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,/* data page inf
             directory d;
             d.pages = directoryPages;
             d.headerPageId = newpage->page_no();
-            dirs.push_back(d);
+            all_directories.push_back(d);
         } else {
         HFPage *hpg = directoryPages[0];
         
         i=0;
-        while(i<dirs.size()){
-            if(dirs[i].headerPageId==hpg->page_no())
-                dirs[i++].pages=directoryPages; 
+        while(i<all_directories.size()){
+            if(all_directories[i].headerPageId==hpg->page_no())
+                all_directories[i++].pages=directoryPages; 
         }
       }
         
