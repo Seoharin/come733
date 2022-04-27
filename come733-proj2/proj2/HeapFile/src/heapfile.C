@@ -181,10 +181,8 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     //No existing datapage has space left for record, create new data page
     newinfo = (DataPageInfo*)malloc(sizeof(DataPageInfo));
     newpage;
-    Status newStatus = newDataPage(newinfo);
+    newDataPage(newinfo);
    
-    if (newStatus != OK)
-        return newStatus;
 
     newinfo->recct += 1;
     recCount += 1;
