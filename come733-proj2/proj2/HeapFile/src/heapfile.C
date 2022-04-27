@@ -222,7 +222,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     MINIBASE_BM->unpinPage(dirId, DIRTY, this->fileName);
     
     //unpin to save datapage
-    MINIBASE_BM->unpinPage(info->pageId, DIRTY, this->fileName);
+    MINIBASE_BM->unpinPage(newinfo->pageId, DIRTY, this->fileName);
 
    
     return insertStatus;
