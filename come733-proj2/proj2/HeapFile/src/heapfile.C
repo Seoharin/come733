@@ -235,10 +235,10 @@ Status HeapFile::deleteRecord (const RID& rid)
        // pinfo = (DataPageInfo*)recptr;
         
         if(hfdatapage->deleteRecord(rid)==OK){
-            //MINIBASE_BM->unpinPage(datapid,DIRTY,this->fileName);
+            MINIBASE_BM->unpinPage(datapid,DIRTY,this->fileName);
             //pinfo->availspace = hfdatapage->available_space();
             //pinfo->recct -=1;
-            //MINIBASE_BM->unpinPage(dirpid,DIRTY,this->fileName);
+            MINIBASE_BM->unpinPage(dirpid,DIRTY,this->fileName);
             //return OK;
 
         }else return FAIL;
