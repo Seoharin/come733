@@ -224,7 +224,8 @@ Status HeapFile::deleteRecord (const RID& rid)
     HFPage *hfdirpage, *hfdatapage;
     PageId dirpid, datapid;
     RID currid;
-   
+    char *recptr;
+    int reclen;
     
     if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
         
