@@ -229,8 +229,8 @@ Status HeapFile::deleteRecord (const RID& rid)
     int reclen;
     
     if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
-        //MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName);
-        //MINIBASE_BM->pinPage(datapid,(Page*&)hfdatapage,hfdatapage->empty(),this->fileName);
+        MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName);
+        MINIBASE_BM->pinPage(datapid,(Page*&)hfdatapage,hfdatapage->empty(),this->fileName);
         hfdatapage->returnRecord(rid,recptr,reclen);
        // pinfo = (DataPageInfo*)recptr;
         
