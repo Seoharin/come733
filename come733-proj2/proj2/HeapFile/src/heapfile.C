@@ -153,10 +153,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
-                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfdatapage, 0, this->fileName);
+                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage, 0, this->fileName);
                 
-                if(hfdatapage->insertRecord(recPtr,recLen,outRid)==OK){
-                     pinfo->availspace = hfdatapage->available_space();
+                if(hfpage->insertRecord(recPtr,recLen,outRid)==OK){
+                     pinfo->availspace = hfpage->available_space();
                      pinfo->recct += 1;
                      reccnt += 1;
 
