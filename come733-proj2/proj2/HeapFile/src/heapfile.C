@@ -140,8 +140,8 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     //if datapage has space 
     for (int i = 0; i < directoryPages.size(); i++) {
         hfpage = directoryPages[i];
-        page = (Page*)hfpage;
-        MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+        //page = (Page*)hfpage;
+        MINIBASE_BM->pinPage(hfpage->page_no(), (Page*&)hfpage, hfpage->empty(), this->fileName);
        
         
         hfpage->firstRecord(rid);
@@ -153,10 +153,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
-                MINIBASE_BM->pinPage(pinfo->pageId, datapage, 0, this->fileName);
-                hfdatapage = (HFPage*)datapage;
+                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage, 0, this->fileName);
+                //hfdatapage = (HFPage*)datapage;
                 
-                if(hfdatapage->insertRecord(recPtr,recLen,outRid)==OK){
+                if(hfdpage->insertRecord(recPtr,recLen,outRid)==OK){
                      pinfo->availspace = hfdatapage->available_space();
                      pinfo->recct += 1;
                      reccnt += 1;
@@ -168,7 +168,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                     
                 }else return MINIBASE_CHAIN_ERROR(HEAPFILE, FAIL);
                 
-            }
+            } 
             currid = rid;
             if(hfpage->nextRecord(currid,rid)!=OK) break;
            
