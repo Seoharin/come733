@@ -288,7 +288,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
     char *prerecptr = NULL;
     int prereclen = 0;
     
-    if(findDataPage(rid, dirpid, dirpg,dppid,datapd)==OK){
+    if(findDataPage(rid, dirpid, dirpg,dppid,datapg)==OK){
         //find datapage to update record
         if(datapg -> returnRecord(rid,prerecptr,prereclen))==OK{
             //find record in datapage
