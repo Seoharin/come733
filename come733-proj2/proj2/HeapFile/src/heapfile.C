@@ -129,7 +129,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         return MINIBASE_FIRST_ERROR(HEAPFILE, NO_SPACE);
     
     PageId directoryid;
-    HFPage* hfpage,*hfdatapage, *directoryhfpage;
+    HFPage* hfpage,*temphfpage, *directoryhfpage;
     Page *datapage,*newpage,*pg;
     DataPageInfo* pinfo, *newinfo,*pinfo2;
     RID rid,currid,directoryrid;
@@ -153,10 +153,10 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
-                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage, 0, this->fileName);
+                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)temphfpage, 0, this->fileName);
                 
-                if(hfpage->insertRecord(recPtr,recLen,outRid)==OK){
-                     pinfo->availspace = hfpage->available_space();
+                if(temphfpage->insertRecord(recPtr,recLen,outRid)==OK){
+                     pinfo->availspace = temphfpage->available_space();
                      pinfo->recct += 1;
                      reccnt += 1;
 
