@@ -295,7 +295,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
         datapage = (Page*)datahfpage;
         dirpage =(Page*)dirhfpage;
         
-        MINIBASE_BM->pinPage(datahfpage->page_no(), srcpage, 0, this->fileName);
+        MINIBASE_BM->pinPage(datahfpage->page_no(), datapage, 0, this->fileName);
         if(datahfpage->returnRecord(currid, recptr,reclen)==OK){
              pinfo = (DataPageInfo*)recptr;
              MINIBASE_BM->pinPage(pinfo->pageId, datapage, 0, this->fileName);
