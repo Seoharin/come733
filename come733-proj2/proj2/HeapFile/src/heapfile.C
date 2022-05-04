@@ -141,6 +141,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     for (int i = 0; i < directoryPages.size(); i++) {
         hfpage = directoryPages[i];
         //page = (Page*)hfpage;
+        
         MINIBASE_BM->pinPage(hfpage->page_no(), (Page*&)hfpage, hfpage->empty(), this->fileName);
        
         
@@ -157,7 +158,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                 //hfdatapage = (HFPage*)datapage;
                 
                 if(hfpage->insertRecord(recPtr,recLen,outRid)==OK){
-                     pinfo->availspace = hfdatapage->available_space();
+                     pinfo->availspace = hfpage->available_space();
                      pinfo->recct += 1;
                      reccnt += 1;
 
