@@ -21,15 +21,14 @@ static const char *hfErrMsgs[] = {
 };
 
 
-vector<HFPage*> directoryPages;   //current opened directory pages
+vector<HFPage*> curdic; //current directory pages
+vector<pagedirectory> all_directories;
 
+//directory page
 typedef struct{
-    PageId headerPageId;
-    vector<HFPage*> pages;
-}pagedirectory;        
-//pagedirectory has headerpageid and pages
-
-vector<pagedirectory> all_directories;    //lise of all directories
+  int headerid;
+  vector<HFPage*> pages;
+}pagedirectory;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
@@ -40,31 +39,36 @@ int reccnt = 0;
 // Constructor
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
-   PageId start_pg;
-   int i, namelen;
-    
-   namelen = strlen(name);
-   if (namelen > MAX_NAME) {
-        returnStatus = FAIL;
-        return;
-    }
-    
-    this->file_deleted = F;
-    
-    this->fileName = (char*) malloc(sizeof(char)*namelen);
-    for(i=0;i<namelen;i++)
-        this->fileName[i]=name[i];
+    int namelen = strlen(name);
+   PageId hid;  //header id of heapfile
 
-    if( MINIBASE_DB->get_file_entry(name, start_pg)!=OK) directoryPages.clear();
-    else{
-           i=0;
-       while(1){
-           if(all_directories[i].headerPageId==start_pg) break;
-           i++;
-       }
-       directoryPages=all_directories[i].pages;
+    if(namelen>MAX_NAME){
+      returnStatus = FALSE;
+      return;
     }
- 
+
+    //assign memory for filename
+    //this->fileName = (char*)malloc(sizeof(char)*namelen);
+    for(int i=0;i<namelen;i++) this->fileName[i]=name[i];
+
+    //if the name already denotes a file
+    if(MINIBASE_DB->get_file_entry(name, hid)==OK){
+      this->firstPageId = hid;
+      this->fileName = name;
+      this->file_deleted = FALSE;
+      int i=0;
+      while(1){
+        if(all_directories[i].headerid==hid) break;
+        i++;
+      }
+      curdic = all_directories[i]
+    }
+    //otherwise, a new empty file is created.
+    else{
+      curdic.clear();
+      }
+    }
+      
     returnStatus = OK;
    
 }
