@@ -460,8 +460,8 @@ Status HeapFile::findDataPage(const RID& rid,
                         rpdatapage = (HFPage *)dp;
                         
                         rpDataPageRid = rid;
-                        //MINIBASE_BM->unpinPage(rid.pageNo);
-                        //MINIBASE_BM->unpinPage(pageNo);
+                        MINIBASE_BM->unpinPage(rid.pageNo);
+                        MINIBASE_BM->unpinPage(pageNo);
                         return OK;
                     }
                 }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
