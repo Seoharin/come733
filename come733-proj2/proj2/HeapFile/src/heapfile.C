@@ -287,10 +287,11 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
     PageId dirpid , dppid;
     char *prerecptr = NULL;
     int prereclen = 0;
+    RID temprid;
     
-    if(findDataPage(rid, dirpid, dirpg,dppid,datapg)==OK){
+    if(findDataPage(rid, dirpid, dirpg,dppid,datapg,temprid)==OK){
         //find datapage to update record
-        if(datapg -> returnRecord(rid,prerecptr,prereclen))==OK{
+        if(datapg -> returnRecord(rid,prerecptr,prereclen)==OK){
             //find record in datapage
             MINIBASE_BM->pinPage(dppid);
         }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
