@@ -129,7 +129,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         return MINIBASE_FIRST_ERROR(HEAPFILE, NO_SPACE);
     
     PageId directoryid;
-    HFPage* hfpage,*temphfpage, *directoryhfpage;
+    HFPage* hfpage,*temphfpage, *directoryhfpage,*newhfpage;
     DataPageInfo* pinfo, *newinfo,*pinfo2;
     RID rid,currid,directoryrid;
     char *recptr;
