@@ -154,7 +154,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
                 
-                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage, 0, this->fileName);
+                MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage,  hfpage->empty(), this->fileName);
                 //hfdatapage = (HFPage*)datapage;
                 
                 if(hfpage->insertRecord(recPtr,recLen,outRid)==OK){
@@ -163,7 +163,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
                      reccnt += 1;
 
                      MINIBASE_BM->unpinPage(pinfo->pageId, DIRTY, this->fileName);
-                     MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+                     MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
                
                      return OK;
                     
@@ -174,7 +174,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if(hfpage->nextRecord(currid,rid)!=OK) break;
            
         }
-        MINIBASE_BM->unpinPage(hfpage->page_no(), DIRTY, this->fileName);
+        MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
         
     }
    
