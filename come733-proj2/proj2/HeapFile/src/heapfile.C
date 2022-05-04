@@ -214,34 +214,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
 
 // ***********************
 // delete record from file
-Status HeapFile::deleteRecord (const RID& rid)
-{
-  ***Advanced Database Project2 - HeapFile***
 
-
-deleteRecord
-findDataPage를 통해 directory, page id, rid를 구하고 해당하는 record에 접근해서 삭제
-
-updateRecord
-findDataPage를 통해 update할 record의 directory, page id, rid를 구하고 
-해당하는 record update.
-
-
-findDataPage
-입력값인 rid에 해당하는 record가 있는 dirpage, dirpageid, page, pageid, rid를 반환
-
-
------------------------------------
-buf
- Status pinPage(int PageId_in_a_DB, Page*& page,
-                   int emptyPage=0, const char *filename=NULL);
-
-       
- Status unpinPage(int globalPageId_in_a_DB,
-                     int dirty=FALSE, const char *filename=NULL);
-
-
----------------------------------------------------------
 
 Status HeapFile::deleteRecord (const RID& rid)
 {
