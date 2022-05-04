@@ -285,6 +285,7 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
  
     HFPage * datapg, *dirpg;
     PageId dirpid , dppid;
+    Page *pg;
     char *prerecptr = NULL;
     int prereclen = 0;
     RID temprid;
@@ -294,7 +295,8 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
         if(datapg -> returnRecord(rid,prerecptr,prereclen)==OK){
             //find record in datapage
             //MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-            MINIBASE_BM->pinPage(datapg->page_no(),(page*)datapg,datapg->empty(),this->fileName);
+            pg = (Page*) datapg;
+            MINIBASE_BM->pinPage(datapg->page_no(),pg,datapg->empty(),this->fileName);
         }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
     }else return DONE;
     
