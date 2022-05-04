@@ -444,7 +444,7 @@ Status HeapFile::findDataPage(const RID& rid,
         
         if(hfpage->firstRecord(currid)==OK){
             while(1){
-                if(hfpage->getRecord(currid,recptr,reclen)==OK){
+                if(hfpage->returnRecord(currid,recptr,reclen)==OK){
                     pinfo = (DataPageInfo*)recptr;
                     if(pinfo->pageId==rid.pageNo){
                         MINIBASE_BM->pinPage(pageNo,page,0,this->fileName);
