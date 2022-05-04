@@ -270,7 +270,7 @@ Status HeapFile::deleteRecord (const RID& rid)
 
 }
 
-}
+
 
 // *******************************************
 // updates the specified record in the heapfile.
