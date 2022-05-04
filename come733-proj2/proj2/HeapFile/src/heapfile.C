@@ -130,7 +130,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     
     PageId directoryid;
     HFPage* hfpage,*hfdatapage, *directoryhfpage;
-    Page *page,*datapage,*newpage,*pg;
+    Page *datapage,*newpage,*pg;
     DataPageInfo* pinfo, *newinfo,*pinfo2;
     RID rid,currid,directoryrid;
     char *recptr,*recptr2;
@@ -331,11 +331,11 @@ Status HeapFile::newDataPage(DataPageInfo *dpinfop)
     if(dpinfop==NULL) return FAIL;
     
     int pageid;
-    Page *newpage;
-    HFPage *newhfpage;
-    MINIBASE_BM->newPage(pageid,newpage,1);
     
-    newhfpage = (HFPage *)newpage;
+    HFPage *newhfpage;
+    MINIBASE_BM->newPage(pageid,(Page*&)newhfpage,1);
+    
+   
     newhfpage->init(pageid);
 
     
