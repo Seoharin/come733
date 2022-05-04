@@ -293,13 +293,14 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
         //find datapage to update record
         if(datapg -> returnRecord(rid,prerecptr,prereclen)==OK){
             //find record in datapage
-            MINIBASE_BM->pinPage(dppid);
+            //MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+            MINIBASE_BM->pinPage(datapg->page_no(),(page*)datapg,datapg->empty(),this->fileName);
         }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
     }else return DONE;
     
     if(prereclen!=recLen) return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_UPDATE);
     memmove(prerecptr,recPtr,recLen);
-    MINIBASE_BM->unpinPage(dppid,T);
+    MINIBASE_BM->unpinPage(datapg->page_no(),CLEAN,this->fileName);
     
     return OK;
     
