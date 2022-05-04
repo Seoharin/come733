@@ -219,12 +219,12 @@ Status HeapFile::deleteRecord (const RID& rid)
   if(rid.slotNo < 0)
         return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_SLOTNO);
   // fill in the body
-    HFpage *hfdirpage, *hfdatapage;
+    HFPage *hfdirpage, *hfdatapage;
     PageId dirpid, datapid;
     RID currid;
     DataPageInfo *pinfo;
     char *recptr;
-    len reclen;
+    int reclen;
     
     if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
         MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName());
@@ -232,9 +232,10 @@ Status HeapFile::deleteRecord (const RID& rid)
         hfdatapage->returnRecord(currid,recptr,reclen);
         
         if(hfdatapage->deleteRecord(rid)==OK){
+            pinfo = (DataPageInfo*)recptr;
             MINIBASE_BM->unpinPage(datapid,CLEAN,this->fileName);
-            (DataPageInfo*&)recptr->availspace = hfdatapage->available_space();
-            (DataPageInfo*&)recptr->recct -=1;
+            pinfo->availspace = hfdatapage->available_space();
+            pinfo->recct -=1;
             MINIBASE_BM->unpinPage(dirpid,CLEAN,this->fileName);
             return OK;
 
