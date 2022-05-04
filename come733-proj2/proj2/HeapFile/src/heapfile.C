@@ -21,14 +21,15 @@ static const char *hfErrMsgs[] = {
 };
 
 
-vector<HFPage*> curdic; //current directory pages
-vector<pagedirectory> all_directories;
+vector<HFPage*> directoryPages;   //current opened directory pages
 
-//directory page
 typedef struct{
-  int headerid;
-  vector<HFPage*> pages;
-}pagedirectory;
+    PageId headerPageId;
+    vector<HFPage*> pages;
+}pagedirectory;        
+//pagedirectory has headerpageid and pages
+
+vector<pagedirectory> all_directories;    //lise of all directories
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
@@ -39,36 +40,31 @@ int reccnt = 0;
 // Constructor
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
-    int namelen = strlen(name);
-   PageId hid;  //header id of heapfile
-
-    if(namelen>MAX_NAME){
-      returnStatus = FALSE;
-      return;
+   PageId start_pg;
+   int i, namelen;
+    
+   namelen = strlen(name);
+   if (namelen > MAX_NAME) {
+        returnStatus = FAIL;
+        return;
     }
+    
+    this->file_deleted = F;
+    
+    this->fileName = (char*) malloc(sizeof(char)*namelen);
+    for(i=0;i<namelen;i++)
+        this->fileName[i]=name[i];
 
-    //assign memory for filename
-    //this->fileName = (char*)malloc(sizeof(char)*namelen);
-    for(int i=0;i<namelen;i++) this->fileName[i]=name[i];
-
-    //if the name already denotes a file
-    if(MINIBASE_DB->get_file_entry(name, hid)==OK){
-      this->firstPageId = hid;
-      this->fileName = name;
-      this->file_deleted = FALSE;
-      int i=0;
-      while(1){
-        if(all_directories[i].headerid==hid) break;
-        i++;
-      }
-      curdic = all_directories[i]
-    }
-    //otherwise, a new empty file is created.
+    if( MINIBASE_DB->get_file_entry(name, start_pg)!=OK) directoryPages.clear();
     else{
-      curdic.clear();
-      }
+           i=0;
+       while(1){
+           if(all_directories[i].headerPageId==start_pg) break;
+           i++;
+       }
+       directoryPages=all_directories[i].pages;
     }
-      
+ 
     returnStatus = OK;
    
 }
