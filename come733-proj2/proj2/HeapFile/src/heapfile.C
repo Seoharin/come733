@@ -183,7 +183,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     newDataPage(newinfo);
    
     newinfo->recct =newinfo->recct+ 1;
-    reccnt ==reccnt+ 1;
+   
 
     
     
