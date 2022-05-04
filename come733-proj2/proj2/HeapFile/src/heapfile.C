@@ -229,11 +229,11 @@ Status HeapFile::deleteRecord (const RID& rid)
     if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
         //MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName);
         //MINIBASE_BM->pinPage(datapid,(Page*&)hfdatapage,hfdatapage->empty(),this->fileName);
-        hfdatapage->returnRecord(currid,recptr,reclen);
+        hfdatapage->returnRecord(rid,recptr,reclen);
+        pinfo = (DataPageInfo*)recptr;
         
         if(hfdatapage->deleteRecord(rid)==OK){
-            pinfo = (DataPageInfo*)recptr;
-            MINIBASE_BM->unpinPage(datapid,CLEAN,this->fileName);
+            MINIBASE_BM->unpinPage(datapid,DIRTY,this->fileName);
             pinfo->availspace = hfdatapage->available_space();
             pinfo->recct -=1;
             MINIBASE_BM->unpinPage(dirpid,DIRTY,this->fileName);
@@ -241,7 +241,7 @@ Status HeapFile::deleteRecord (const RID& rid)
 
         }else return FAIL;
         MINIBASE_BM->unpinPage(dirpid,CLEAN,this->fileName);
-    }else return DONE;
+    }else return FAIL;
     
 
 }
