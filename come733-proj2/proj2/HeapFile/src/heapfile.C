@@ -183,12 +183,11 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
     newDataPage(newinfo);
    
     newinfo->recct =newinfo->recct+ 1;
-   
-
     
+    PageId newid;
     
-    allocateDirSpace(newinfo, hfpage->page_no(), currid);
-    MINIBASE_BM->pinPage(hfpage->page_no(), (Page*&)hfpage, 0, this->fileName);
+    allocateDirSpace(newinfo, newid, currid);
+    MINIBASE_BM->pinPage(newid, (Page*&)hfpage, 0, this->fileName);
     
     if(hfpage->returnRecord(currid,recptr,reclen)==OK){
         pinfo = (DataPageInfo*)recptr;
