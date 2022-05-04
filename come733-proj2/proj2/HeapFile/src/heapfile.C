@@ -83,18 +83,35 @@ int HeapFile::getRecCnt()
 {
    // fill in the body
     int rcnt = 0;
-    PageId curpid, nextpid;
-    HFPage *curpage;
+    HFPage *hfpage;
+    Page * page;
+    RID rid, temp;
+    DataPageInfo* pinfo;
+    char* recptr;
+    int recLen;
+    int i=0;
     
-    curpid = this->firstDirPageId;
-    while(curpid!=INVALID_PAGE){
-        MINIBASE_BM->pinpage(curpid, (page*&)curpage,curpage->empty(),this->fileName);
-        rcnt +=curpage->getRecCnt();
-        nextpid = curpage->getNextPage();
-        MINIBASE_BM->unpinpage(curpid,CLEAN,this->fileName)
-        curpid = nextpid;
+    while(i<directoryPages.size()){
+        hfpage = directoryPages[i];
+        page = (Page *)hfpage;
         
+        MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
+      
         
+        if((hfpage->firstRecord(rid))==OK)
+        {
+            do{
+            hfpage->returnRecord(rid, recptr, recLen);
+            temp = rid;
+            pinfo = (DataPageInfo*)recptr;
+            rcnt = rcnt+pinfo->recct;
+          
+            }while((hfpage->nextRecord(temp,rid))==OK); 
+        }
+        
+        MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+      
+        i++;
     }
     
     return rcnt;
@@ -433,6 +450,8 @@ Status HeapFile::findDataPage(const RID& rid,
                     PageId &rpDataPageId,HFPage *&rpdatapage,
                     RID &rpDataPageRid)
 {
+    
+    
     rpdirpage = NULL;
     rpdatapage = NULL;
     // fill in the body
@@ -456,16 +475,20 @@ Status HeapFile::findDataPage(const RID& rid,
                     if(pinfo->pageId==rid.pageNo){
                         MINIBASE_BM->pinPage(pageNo,page,0,this->fileName);
                         MINIBASE_BM->pinPage(rid.pageNo,dp,0,this->fileName);
+                        
                         rpDirPageId = pageNo;
-                        rpDataPageId = rid.pageNo;
-                        rpDataPageRid = rid;
-                        rpdatapage = (HFPage *)dp;
                         rpdirpage = (HFPage *)page;
-               
+                        
+                        
+                        rpDataPageId = pinfo->pageId;
+                        rpdatapage = (HFPage *)dp;
+                        
+                        rpDataPageRid = rid;
+                       
                         return OK;
                     }
                 }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
-                RID temp = currid;
+                temp = currid;
                 if(hfpage->nextRecord(temp,currid)!=OK) break;
                 
             }
