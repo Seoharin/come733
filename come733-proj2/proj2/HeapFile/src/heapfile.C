@@ -51,7 +51,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     
     this->file_deleted = F;
     
-    #this->fileName = (char*) malloc(sizeof(char)*namelen);
+    //this->fileName = (char*) malloc(sizeof(char)*namelen);
     for(i=0;i<namelen;i++)
         this->fileName[i]=name[i];
 
