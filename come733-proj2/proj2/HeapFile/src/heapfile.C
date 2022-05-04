@@ -276,51 +276,23 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
   // fill in the body
    
   
+   HFPage *hfdirpage, *hfdatapage;
+   PageId dirpid, datapid;
+   RID currid;
+   char *recptr;
+   int reclen;
     
+   if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
+        
+       MINIBASE_BM->pinPage(datapid,(Page*&)hfdatapage,hfdatapage->empty(),this->fileName);
+       hfdatapage->returnRecord(rid,recptr,reclen);
+       if(reclen==recLen){
+            memmove(recPtr, recptr, recLen);
+            MINIBASE_BM->unpinPage(datapid,DIRTY,this->fileName);
+            return OK;
+       }else return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
+   }else return FAIL;
     
-  HFPage *hfpage;
-  Page *page;
-  DataPageInfo * pinfo;
-  RID currid, temp;
-  char *recptr;
-  int reclen;
-    
-  for(int i=0;i<directoryPages.size();i++)
-  {
-      hfpage = directoryPages[i];
-      page = (Page *)hfpage;
-      MINIBASE_BM->pinPage(hfpage->page_no(),page,0,this->fileName);
-      
-      if(hfpage->firstRecord(currid)==OK){
-          while(1){
-              if(hfpage->returnRecord(currid,recptr,reclen)==OK){
-                   pinfo = (DataPageInfo *)recptr;
-                   if(pinfo->pageId == rid.pageNo) {
-                   Page *dataPage;
-                   MINIBASE_BM->pinPage(rid.pageNo,dataPage,0,this->fileName);
-             
-                   HFPage *dp = (HFPage *)dataPage;
-                   char *record;
-                   if(dp->returnRecord(rid,record,recLen)==OK){
-                       memmove(recPtr,record,recLen);
-                       MINIBASE_BM->unpinPage(rid.pageNo,CLEAN,this->fileName);
-                       MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);  
-                   }else return MINIBASE_CHAIN_ERROR(BUFMGR,FAIL);
-                       
-                   return OK;
-                   }
-              temp = currid;
-              if(hfpage->nextRecord(temp,currid)!=OK) break;
-              }else return MINIBASE_FIRST_ERROR(HEAPFILE,RECNOTFOUND);
-              
-            
-          }
-      }
-      
-      MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
-     
-  }
-  return DONE;
 }
 
 // **************************
