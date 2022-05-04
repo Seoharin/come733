@@ -229,7 +229,7 @@ Status HeapFile::deleteRecord (const RID& rid)
     int reclen;
     
     if(findDataPage(rid, dirpid, hfdirpage, datapid, hfdatapage, currid)==OK){
-        MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName);
+        //MINIBASE_BM->pinPage(dirpid,(Page*&)hfdirpage,hfdirpage->empty(),this->fileName);
         MINIBASE_BM->pinPage(datapid,(Page*&)hfdatapage,hfdatapage->empty(),this->fileName);
         hfdatapage->returnRecord(rid,recptr,reclen);
        // pinfo = (DataPageInfo*)recptr;
@@ -238,11 +238,11 @@ Status HeapFile::deleteRecord (const RID& rid)
             MINIBASE_BM->unpinPage(datapid,DIRTY,this->fileName);
             //pinfo->availspace = hfdatapage->available_space();
             //pinfo->recct -=1;
-            MINIBASE_BM->unpinPage(dirpid,DIRTY,this->fileName);
+            //MINIBASE_BM->unpinPage(dirpid,DIRTY,this->fileName);
             //return OK;
 
         }else return FAIL;
-        MINIBASE_BM->unpinPage(dirpid,CLEAN,this->fileName);
+        //MINIBASE_BM->unpinPage(dirpid,CLEAN,this->fileName);
     }else return FAIL;
 }
 
@@ -460,8 +460,8 @@ Status HeapFile::findDataPage(const RID& rid,
                         rpdatapage = (HFPage *)dp;
                         
                         rpDataPageRid = rid;
-                        MINIBASE_BM->unpinPage(rid.pageNo);
-                        MINIBASE_BM->unpinPage(pageNo);
+                        //MINIBASE_BM->unpinPage(rid.pageNo);
+                        //MINIBASE_BM->unpinPage(pageNo);
                         return OK;
                     }
                 }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
