@@ -143,13 +143,12 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
         hfpage->firstRecord(rid);
         
         while (1) {
+            MINIBASE_BM->pinPage(hfpage->page_no(), (Page*&)hfpage, hfpage->empty(), this->fileName);
             hfpage->returnRecord(rid, recptr, reclen);
-           
             pinfo = (DataPageInfo*)recptr;
+            
             if (pinfo->availspace > recLen) {
                 outRid.pageNo = pinfo->pageId;
-                
-                MINIBASE_BM->pinPage(hfpage->page_no(), (Page*&)hfpage, hfpage->empty(), this->fileName);
                 MINIBASE_BM->pinPage(pinfo->pageId, (Page*&)hfpage,  hfpage->empty(), this->fileName);
                 //hfdatapage = (HFPage*)datapage;
                 
@@ -170,6 +169,7 @@ Status HeapFile::insertRecord(char* recPtr, int recLen, RID& outRid)
             if(hfpage->nextRecord(currid,rid)!=OK) break;
            
         }
+        MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
      
         
     }
