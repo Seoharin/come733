@@ -282,27 +282,34 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
     {
         return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_SLOTNO);
     }
- 
-    HFPage * datapg, *dirpg;
-    PageId dirpid , dppid;
-    Page *pg;
-    char *prerecptr = NULL;
-    int prereclen = 0;
-    RID temprid;
+    HFPage * datahfpage, *dirhfpage;
+    Page * datapage, *dirpage;
+    PageId dirpid, datapid;
     
-    if(findDataPage(rid, dirpid, dirpg,dppid,datapg,temprid)==OK){
-        //find datapage to update record
-        if(datapg -> returnRecord(rid,prerecptr,prereclen)==OK){
-            //find record in datapage
-            //MINIBASE_BM->pinPage(hfpage->page_no(), page, hfpage->empty(), this->fileName);
-            pg = (Page*) datapg;
-            MINIBASE_BM->pinPage(datapg->page_no(),pg,datapg->empty(),this->fileName);
-        }else return MINIBASE_CHAIN_ERROR(HEAPFILE,FAIL);
+    DataPageInfo * pinfo;
+    RID currid;
+    char* recptr;
+    int reclen;
+
+    if(findDataPage(rid,dirpid,dirhfpage,datapid,datahfpage,currid)==OK){
+        datapage = (Page*)datahfpage;
+        dirpage =(Page*)dirhfpage;
+        
+        MINIBASE_BM->pinPage(hfpage->page_no(), datapage, 0, this->fileName);
+        if(hfpage->returnRecord(currid, recptr,reclen)==OK){
+             pinfo = (DataPageInfo*)recptr;
+             MINIBASE_BM->pinPage(pinfo->PageId, datapage, 0, this->fileName);
+            
+            if(reclen==recLen){
+                
+                 memmove(srcptr, recPtr, recLen);
+                 MINIBASE_BM->unpinPage(pinfo->PageId, DIRTY, this->fileName);
+                 MINIBASE_BM->unpinPage(hfpage->page_no(), CLEAN, this->fileName);
+                
+            }else return MINIBASE_FIRST_ERROR(HEAPFILE, INVALID_UPDATE);
+            
+        }else return MINIBASE_FIRST_ERROR(HEAPFILE, RECNOTFOUND);
     }else return DONE;
-    
-    if(prereclen!=recLen) return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_UPDATE);
-    memmove(prerecptr,recPtr,recLen);
-    MINIBASE_BM->unpinPage(datapg->page_no(),CLEAN,this->fileName);
     
     return OK;
     
