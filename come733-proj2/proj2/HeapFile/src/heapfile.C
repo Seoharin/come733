@@ -274,6 +274,10 @@ Status HeapFile::updateRecord(const RID& rid, char* recPtr, int recLen)
 Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
 {
   // fill in the body
+   
+  
+    
+    
   HFPage *hfpage;
   Page *page;
   DataPageInfo * pinfo;
