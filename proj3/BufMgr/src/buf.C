@@ -93,21 +93,21 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   for(int i =0;i<this->numBuffers;i++){
     if(bufDescr[i]->page_number==page_num) {
       if(bufDescr[i]->pin_count==0) {
-        MINIBASE_SHOW_ERRORS();
-        return FAIL;
+         return MINIBASE_FIRST_ERROR(BUFMGR, INTERNALERROR);
         }
 
       bufDescr[i]->pin_count-=1;
       if(bufDescr[i]->pin_count==0)
-
+      //put in replacement candidates
+        
       bufDescr[i]->dirty = dirty;
-      break;
+      return OK;
     }
     
   }
   
 
-  return OK;
+  return FAIL;
 }
 
 //*************************************************************
@@ -129,7 +129,7 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   //for(i=0;i<this->numBuffers;i++){
   //   DB->deallocate_page(bufDescr[i]->page_number);
  // }
-  return MINIBASE_FIRST_ERROR(BUF, DB_FULL);
+  return MINIBASE_FIRST_ERROR(BUFMGR, BUFFERFULL);
   
 
   
