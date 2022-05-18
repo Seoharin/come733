@@ -37,7 +37,7 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
 
 typedef description{
-  PageId page_number;
+  PageId page_number = -1;
   int pin_count;
   bool dirty;
 };
@@ -114,10 +114,25 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
 //** This is the implementation of newPage
 //************************************************************
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
-  // put your code here
-  DB->allocate_page(firstPageId);
+  // find a frame in the buffer pool for the first page
+  int i;
+  
+  for(i=0;i<this->numBuffers;i++){
+      if(bufDescr[i]->page_number==-1){
+         DB->allocate_page(firstPageId);
+         firstpage = bufPool[i];
+         return OK;
+      }
+  }
+  
+ //else buffer is full
+  //for(i=0;i<this->numBuffers;i++){
+  //   DB->deallocate_page(bufDescr[i]->page_number);
+ // }
+  return MINIBASE_FIRST_ERROR(BUF, DB_FULL);
   
 
+  
   return OK;
 }
 
