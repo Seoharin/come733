@@ -36,12 +36,13 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 //************************************************************
 
 
-typedef {
-  PageId page_number = -1;
+typedef  {
+  PageId page_number;
   int pin_count;
   bool dirty;
-}description;
-description* bufDescr; // array of buffer discriptions
+}desc;
+
+desc* bufDescr; // array of buffer discriptions
 
 vector<int>hate;
 vector<int>love;
