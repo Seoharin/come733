@@ -2,16 +2,16 @@
 /*************** Implementation of the Buffer Manager Layer ******************/
 /*****************************************************************************/
 
-#include "minirel.h"
+
+#include <buf.h>
 #include "buf.h"
-#include <vector>
 
 
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
 
 // Define error message here
-static const char* bufErrMsgs[] = { 
+static const char* bufErrMsgs[] = {
   // error message strings go here
   "Not enough memory to allocate hash entry",
   "Inserting a duplicate entry in the hash table",
@@ -28,33 +28,36 @@ static const char* bufErrMsgs[] = {
 };
 
 // Create a static "error_string_table" object and register the error messages
-// with minibase system 
+// with minibase system
 static error_string_table bufTable(BUFMGR,bufErrMsgs);
+
 
 //*************************************************************
 //** This is the implementation of BufMgr
 //************************************************************
 
-
-typedef description{
-  PageId page_number = -1;
-  int pin_count;
-  bool dirty;
-};
-description* bufDescr; // array of buffer discriptions
-
-vector<int>hate;
-vector<int>love;
-
-
 BufMgr::BufMgr (int numbuf, Replacer *replacer) {
-  
-  this.numBuffers = numbuf;
-  //allocate #numbuf * sizeof(Page) to bufPool
-  bufPool = (Page*)malloc(numbuf*sizeof(Page));
-  //allocate #numbuf * sizeof(description) to bufDescr
-  bufDescr = (description*)malloc(numbuf*sizeof(description));
-  
+  // put your code here
+    numBuffers = numbuf;
+    int id;
+    Status status;
+
+    hashTable = new HashEntry*[HTSIZE];
+//    minibase_globals->malloc(sizeof(Page));
+
+   bufPool = (Page *)malloc(numbuf* sizeof(Page));
+    memset(bufPool, 0, numbuf * sizeof(Page));
+   this->descriptors = new Descriptor[numbuf];
+    for(int i=0;i<numbuf;i++) {
+        descriptors[i].pageNumber = -1;
+        descriptors[i].pin_count = 0;
+        descriptors[i].dirty = false;
+    }
+    for(int i=0;i<HTSIZE;i++){
+      hashTable[i]=NULL;
+    }
+
+   this->replacer = new PageReplacer();
 }
 
 //*************************************************************
@@ -68,21 +71,119 @@ BufMgr::~BufMgr(){
 //** This is the implementation of pinPage
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
-  //check if this page is in buffer pool
- 
-  for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==PageId_in_a_DB){
-       page = bufPool[i];
-       bufDescr[i]->pin_count +=1;
-      
-       return OK;
-    }
-  }
-  
-    //otherwise, find a frame for this page
-    //using LOVE/HATE replacement policy
-  
+  // put your code here
+      for(int i=0;i<numBuffers;i++)
+      {
+       //  cout<<descriptors[i].pageNumber<<",";
+          if(descriptors[i].pageNumber == PageId_in_a_DB)
+          {
+              descriptors[i].pin_count+=1;
+              int frameIndex = hash(PageId_in_a_DB);
+              HashEntry *entry = hashTable[frameIndex];
+              while(entry!= NULL)
+              {
+                  if(entry->pageNumber == PageId_in_a_DB)
+                      break;
+                  entry = entry->next;
+              }
+              if(entry==NULL)
+                  return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGENOTFOUND);
+              page = bufPool + entry->frameNumber;
+              int frameNumber = entry->frameNumber;
+            //  memcpy(page,bufPool+frameNumber,sizeof(Page));
+              return OK;
+          }
+      }
+  //  cout<<endl;
 
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber==-1)
+        {
+            int frameIndex = hash(PageId_in_a_DB);
+            HashEntry *entry = new HashEntry();
+            entry->pageNumber = PageId_in_a_DB;
+            entry->frameNumber = i;
+            HashEntry *current = hashTable[frameIndex];
+            entry->next = NULL;
+            if(current!=NULL)
+            {
+                         while (current->next!=NULL)
+                             current=current->next;
+                        current->next = entry;
+            }
+            else
+            {
+                hashTable[frameIndex] = entry;
+            }
+            page = bufPool +i;
+            if(emptyPage!=TRUE)
+            {
+                Status readStatus = MINIBASE_DB->read_page(PageId_in_a_DB,page);
+                if(readStatus!=OK)
+                    return MINIBASE_CHAIN_ERROR(BUFMGR,readStatus);
+
+                  memcpy(bufPool + i,page,sizeof(Page));
+            }
+            descriptors[i].pin_count += 1;
+            descriptors[i].pageNumber = PageId_in_a_DB;
+            return OK;
+        }
+    }
+    PageId victim = replacer->getVictim();
+    int frameIndex = hash(victim);
+    HashEntry *entry = hashTable[frameIndex];
+    while(entry)
+    {
+        if(entry->pageNumber == victim)
+            break;
+        entry = entry->next;
+    }
+
+   Status flushStatus =  flushPage(victim);
+
+    descriptors[entry->frameNumber].pageNumber= PageId_in_a_DB;
+    page = bufPool + entry->frameNumber;
+    Status readStatus = MINIBASE_DB->read_page(PageId_in_a_DB,page);
+  //  page = pg;
+  //  cout<<"Data read - "<<(char *)pg<<endl;
+    descriptors[entry->frameNumber].pin_count+=1;
+    int victimFrame = entry->frameNumber;
+    if(readStatus==OK && emptyPage!=true)
+       memcpy(bufPool+entry->frameNumber,page,sizeof(Page));
+    if(flushStatus!=OK)
+        return MINIBASE_FIRST_ERROR(BUFMGR,BUFMGRMEMORYERROR);
+//    if(entry->next==NULL)
+//    {
+//           delete(entry);
+//    } else
+//    {
+//        HashEntry *next = entry->next;
+//        delete(entry);
+//        entry = next;
+//    }
+    int newFrameIndex = hash(PageId_in_a_DB);
+    HashEntry *newEntry = hashTable[newFrameIndex];
+    if(newEntry==NULL)
+    {
+        newEntry = new HashEntry();
+        newEntry->next = NULL;
+        newEntry->frameNumber =  victimFrame;
+        newEntry->pageNumber = PageId_in_a_DB;
+    }
+    else
+    {
+        while(newEntry->next)
+            newEntry= newEntry->next;
+        newEntry->next = new HashEntry();
+        newEntry->next->next = NULL;
+        newEntry->next->pageNumber = PageId_in_a_DB;
+        newEntry->next->frameNumber = victimFrame;
+    }
+
+
+    //no frame available choose a replacement
+  return OK;
 }//end pinPage
 
 //*************************************************************
@@ -90,50 +191,91 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 //************************************************************
 Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   // put your code here
-  for(int i =0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==page_num) {
-      if(bufDescr[i]->pin_count==0) {
-         return MINIBASE_FIRST_ERROR(BUFMGR, INTERNALERROR);
+
+  	for(int i=0;i<numBuffers;i++)
+	{
+        if(descriptors[i].pageNumber==page_num)
+        {
+            int frameIndex = hash(page_num);
+            HashEntry *entry = hashTable[frameIndex];
+            Page *page = bufPool+entry->frameNumber;
+
+    		if(descriptors[i].pin_count == 0)
+    		{
+    			return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGENOTPINNED);
+    		}
+
+            if(descriptors[i].pageNumber == page_num)
+            {
+            //	descriptors[i].pageNumber = -1;
+        		descriptors[i].pin_count -= 1;
+        		descriptors[i].dirty = dirty;
+
+        		if(descriptors[i].pin_count == 0 && hate == FALSE)
+        		{
+                    //descriptors[i].pageNumber = -1;
+        			replacer->addtoLRUQueue(page_num);
+        		}
+        		else if(descriptors[i].pin_count == 0 && hate == TRUE)
+        		{
+                    //descriptors[i].pageNumber=-1;
+        			replacer->addtoMRUStack(page_num);
+        		}
+                if(dirty==TRUE && descriptors[i].pin_count==0)
+                {
+                   Status writeStatus = MINIBASE_DB->write_page(descriptors[i].pageNumber,page);
+                    if(writeStatus!=OK)
+                        return MINIBASE_CHAIN_ERROR(BUFMGR,writeStatus);
+                }
+
+
+        		return OK;
+            }
         }
-
-      bufDescr[i]->pin_count-=1;
-      if(bufDescr[i]->pin_count==0)
-      //put in replacement candidates
-        
-      bufDescr[i]->dirty = dirty;
-      return OK;
     }
-    
-  }
-  
 
-  return FAIL;
+  return DONE;
 }
 
 //*************************************************************
 //** This is the implementation of newPage
 //************************************************************
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
-  // find a frame in the buffer pool for the first page
-  int i;
-  
-  for(i=0;i<this->numBuffers;i++){
-      if(bufDescr[i]->page_number==-1){
-         DB->allocate_page(firstPageId);
-         firstpage = bufPool[i];
-         return OK;
-      }
-  }
-  
- //else buffer is full
-  //for(i=0;i<this->numBuffers;i++){
-  //   DB->deallocate_page(bufDescr[i]->page_number);
- // }
-  return MINIBASE_FIRST_ERROR(BUFMGR, BUFFERFULL);
-  
+  // put your code here
 
-  
-  return OK;
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber == -1)
+        {
+
+            MINIBASE_DB->allocate_page(firstPageId,howmany);
+
+
+            descriptors[i].pageNumber = firstPageId;
+            descriptors[i].pin_count = 1;
+            descriptors[i].dirty = false;
+            int frameIndex = hash(firstPageId);
+            firstpage = bufPool + i;
+            HashEntry *entry = new HashEntry();
+            entry->pageNumber = firstPageId;
+            entry->frameNumber = i;
+            entry->next = NULL;
+            HashEntry *current = hashTable[frameIndex];
+            if(current!=NULL)
+            {
+                while(current->next!=NULL)
+                    current=current->next;
+                current->next = entry;
+            }
+            else
+            {
+                hashTable[frameIndex] = entry;
+            }
+            memcpy(bufPool+i,firstpage,sizeof(Page));
+            return OK;
+        }
+    }
+  return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERFULL);
 }
 
 //*************************************************************
@@ -141,15 +283,35 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
 //************************************************************
 Status BufMgr::freePage(PageId globalPageId){
   // put your code here
-  int i;
-  for(i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==globalPageId) break;
-  }
-
-  // deallocate bufPool[i]
-  Page *page = bufPool[i];
-  free(page);
-
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber==globalPageId && descriptors[i].pin_count!=0)
+            return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGEPINNED);
+        if(descriptors[i].pageNumber==globalPageId)
+        {
+            descriptors[i].pageNumber=-1;
+            descriptors[i].pin_count = 0;
+            Status deallocateStatus =  MINIBASE_DB->deallocate_page(globalPageId,1);
+            if(deallocateStatus!=OK)
+                return MINIBASE_CHAIN_ERROR(BUFMGR,deallocateStatus);
+            int frameIndex = hash(globalPageId);
+            HashEntry *entry = hashTable[frameIndex];
+            while(entry)
+            {
+                if(entry->pageNumber == globalPageId)
+                    break;
+                entry = entry->next;
+            }
+            if(entry->next==NULL)
+                delete(entry);
+            else
+            {
+                HashEntry *next = entry->next;
+                delete(entry);
+                entry = next;
+            }
+        }
+    }
   return OK;
 }
 
@@ -157,40 +319,61 @@ Status BufMgr::freePage(PageId globalPageId){
 //** This is the implementation of flushPage
 //************************************************************
 Status BufMgr::flushPage(PageId pageid) {
-  // memory -> disk 
-  // considering dirty bit
-  int i;
-  for(i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number == pageid) break;
-  }
-  
-  Page *page = bufPool[i];
-  if(bufDescr[i]->dirty) 
-    DB->write_page(pageid, page);
+  // put your code here
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber==pageid)
+        {
+//            if(descriptors[i].pin_count!=0)
+//                return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGEPINNED);
+            int frameIndex = hash(pageid);
+            HashEntry *entry = hashTable[frameIndex];
+            while(entry!=NULL)
+            {
+                   if(entry->pageNumber == pageid)
+                       break;
+                entry = entry->next;
+            }
+            if(entry==NULL)
+                return MINIBASE_FIRST_ERROR(BUFMGR,HASHNOTFOUND);
+            int frameNumber = entry->frameNumber;
+            Page *page = &bufPool[frameNumber];
+            Status writeStatus = MINIBASE_DB->write_page(pageid,page);
+            if(writeStatus!=OK)
+                return MINIBASE_CHAIN_ERROR(BUFMGR,writeStatus);
 
-  DB->deallocate_page(pageid)
-  return OK;
+
+            return OK;
+        }
+    }
+  return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGENOTFOUND);
 }
-    
+
 //*************************************************************
 //** This is the implementation of flushAllPages
 //************************************************************
 Status BufMgr::flushAllPages(){
   //put your code here
-  for(int i=0;i<this->numBuffers;i++){
-    flushPage(bufDescr[i]->page_number);
-  }
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber!=-1)
+        {
+            Status status = flushPage(descriptors[i].pageNumber);
+            if(status!=OK)
+                return MINIBASE_FIRST_ERROR(BUFMGR,INTERNALERROR);
+        }
+    }
   return OK;
 }
 
 
-/*** Methods for compatibility with Projects 1-2 ***/
+/*** Methods for compatibility with project 1 ***/
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const char *filename){
   //put your code here
-  return OK;
+ return pinPage(PageId_in_a_DB,page,emptyPage);
 }
 
 //*************************************************************
@@ -198,17 +381,26 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const 
 //************************************************************
 Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename){
   //put your code here
-  return OK;
+
+  return unpinPage(globalPageId_in_a_DB,dirty,FALSE);
 }
 
 //*************************************************************
 //** This is the implementation of getNumUnpinnedBuffers
 //************************************************************
 unsigned int BufMgr::getNumUnpinnedBuffers(){
-  //put your code here
-  int unpincnt=0;
-  for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->pin_count ==0) unpincnt++;
-  }
-  return unpincnt;
+    int unpinned = 0;
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pin_count==0)
+            unpinned++;
+    }
+    return unpinned;
 }
+
+int BufMgr::hash(int pageNumber)
+{
+    return (2*pageNumber + 3)%HTSIZE;
+}
+
+
