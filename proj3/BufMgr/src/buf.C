@@ -78,7 +78,7 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   for(int i=0;i<HTSIZE;i++){
     hashtable[i].page_number=INVALID_PAGE;
     hashtable[i].frame_number=-1;
-    hashtable[i]->next_page = NULL;
+    hashtable[i].next_page = NULL;
   }
 
   
@@ -289,9 +289,9 @@ void delete_hash_table(PageId page_number){
   
   if(temp->page_number == page_number){
     //맨 앞
-    next = temp->next_page;
+    hashtable[hash] = temp->next_page;
     free(temp);
-    hashtable[hash] = &next;
+     
   }else{
     while(1){
      prev = temp;
