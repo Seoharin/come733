@@ -101,15 +101,29 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
     return MINIBASE_FIRST_ERROR(BUFMGR, BUFFERPAGENOTPINNED);
 
   for(int i=0;i<this->numBuffers;i++){
+    //버퍼풀에 요청한 페이지가 있으면
     if(bufDescr[i].page_number==PageId_in_a_DB){
        page = &bufPool[i];
        bufDescr[i].pin_count +=1; 
        return OK;
     }
   }
-  
+   //버퍼풀에 요청한 페이지가 없고, 비어있는 프레임이 있으면
+  for(int i=0;i<this->numBuffers;i++){
+    if(bufDescr[i].page_number==INVALID_PAGE){
+      int frame = i;
+      write_hash_table(PageId_in_a_DB,i);
+      MINIBASE_DB->read_page(PageId_in_a_DB,page);
+      bufPool[i] = page;
+      bufDescr[i].pin_count++;
+      bufDescr[i].page_number=PageId_in_a_DB;
+      bufDescr[i].dirty=false;
+      return OK;
+    }
+  }
     //otherwise, find a frame for this page
     //using LOVE/HATE replacement policy
+    //버퍼풀에 요청한 페이지가 없고, 비어있는 프레임도 없으면
   PageId replace_page_number = this->Find_Replacement_Page();
 
    for(int i=0;i<this->numBuffers;i++){
@@ -120,9 +134,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 
         this->delete_hash_table(replace_page_number);
         this->write_hash_table(PageId_in_a_DB, frame);
-        MINIBASE_DB->read_page(PageId_in_a_DB, &bufPool[PageId_in_a_DB]);
-        page = &bufPool[PageId_in_a_DB];
-        
+        MINIBASE_DB->read_page(PageId_in_a_DB, page);
+        bufPool[i]=page;
         bufDescr[i].page_number = PageId_in_a_DB;
         bufDescr[i].pin_count++;
         bufDescr[i].dirty=false;
@@ -337,5 +350,3 @@ PageId BufMgr::Find_Replacement_Page(){
   }else return INVALID_PAGE;
 
 }
-
-  
