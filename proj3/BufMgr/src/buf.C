@@ -173,7 +173,7 @@ Status BufMgr::flushPage(PageId pageid) {
     }
   }
 
-  return FALSE;
+  return DONE;
 }
     
 //*************************************************************
@@ -216,7 +216,7 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
   //put your code here
   int unpincnt=0;
   for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->pin_count ==0) unpincnt++;
+    if(bufDescr[i].pin_count ==0) unpincnt++;
   }
   return unpincnt;
 }
