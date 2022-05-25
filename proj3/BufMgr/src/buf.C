@@ -54,10 +54,8 @@ typedef struct bucket{
   bucket* next_page;
 }bucket;
 
-typedef struct hashtable
-{
-	bucket* directory[HTSIZE];	
-}hashtable;
+
+bucket **hashtable;
 
 
 
