@@ -190,12 +190,19 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
 //************************************************************
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   // put your code here
-  MINIBASE_DB->allocate_page(firstPageId);
-  if(pinPage(firstPageId,firstpage,TRUE)!=OK){
+  for(int i=0;i<this->numBuffers;i++){
+    if(bufDescr[i].page_number==INVALID_PAGE){
+       MINIBASE_DB->allocate_page(firstPageId,howmany);
 
-    MINIBASE_FIRST_ERROR(BUFMGR,BUFMGRMEMORYERROR);
-    MINIBASE_DB->deallocate_page(firstPageId);
-    return FAIL;
+       write_hash_table(firstPageId)
+       
+       bufDescr[i].page_number = firstPageId;
+       bufDescr[i].pin_count=1;
+       bufDescr[i].dirty=false;
+
+       int frame = FindFrame(firstPageId);
+       memmove(bufPool+frame, firstpage, sizeof(Page));
+    }
   }
 
   return OK;
@@ -212,7 +219,8 @@ Status BufMgr::freePage(PageId globalPageId){
       bufDescr[i].pin_count=0;
       bufDescr[i].dirty=FALSE;
       // deallocate bufPool[i]
-      MINIBASE_DB->deallocate_page(i);
+      MINIBASE_DB->deallocate_page(globalPageId);
+      delete_hash_table(globalPageId);
       return OK;
     } 
   }
@@ -356,16 +364,22 @@ PageId BufMgr::Find_Replacement_Page(){
   PageId pageid;
   if(MRU.size()>0){
     int msize = MRU.size();
-    pageid = MRU.front();
-    for(int i=0;i<msize-1;i++){
-      MRU[i]=MRU[i+1];
-    }
+    pageid = MRU.back();
     MRU.resize(msize-1);
+    if(pageid==LRU.front()){
+      for(int i=0;i<lsize-1;i++){
+      LRU[i]=LRU[i+1];
+    }
+    LRU.resize(lsize-1);
+    }
     return pageid;
 
   }else if(LRU.size()>0){
     int lsize = LRU.size();
-    pageid = LRU.back();
+    pageid = LRU.front();
+    for(int i=0;i<lsize-1;i++){
+      LRU[i]=LRU[i+1];
+    }
     LRU.resize(lsize-1);
     return pageid;
 
