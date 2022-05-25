@@ -136,7 +136,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
         this->delete_hash_table(replace_page_number);
         this->write_hash_table(PageId_in_a_DB, frame);
         MINIBASE_DB->read_page(PageId_in_a_DB, page);
-        memmove(bufPool+frame,page,sizeof(Page);)
+        memmove(bufPool+frame,page,sizeof(Page));
         bufDescr[i].page_number = PageId_in_a_DB;
         bufDescr[i].pin_count++;
         bufDescr[i].dirty=false;
