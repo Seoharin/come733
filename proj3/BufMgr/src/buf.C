@@ -318,9 +318,9 @@ void BufMgr::delete_hash_table(PageId page_number){
   curr = hashtable[hash];
   temp = curr;
   
-  if(curr==NULL){
-    return MINIBASE_FIRST_ERROR(BUFMGR, HASHREMOVEERROR);
-  }
+  //if(curr==NULL){
+  //   MINIBASE_FIRST_ERROR(BUFMGR,HASHREMOVEERROR);
+  //}
 
   if(curr->page_number==page_number){
     //맨 앞
