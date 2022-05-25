@@ -56,7 +56,7 @@ typedef struct bucket{
 
 typedef struct hashtable
 {
-	Bucket* directory[HTSIZE];	
+	bucket* directory[HTSIZE];	
 }hashtable;
 
 
