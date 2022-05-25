@@ -141,7 +141,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
         this->write_hash_table(PageId_in_a_DB, frame);
         if(emptyPage!=True){
           MINIBASE_DB->read_page(PageId_in_a_DB, page);
-          memmove(bufPool+frame,page,sizeof(Page);)
+          memmove(bufPool+frame,page,sizeof(Page));
         }
       
         bufDescr[i].page_number = PageId_in_a_DB;
@@ -316,7 +316,7 @@ void BufMgr::write_hash_table(PageId page_number, int frame_number){
   }
     temp->page_number=page_number;
     temp->frame_number=frame_number;
-    temp->next = NULL;
+    temp->next_page = NULL;
 }
 
 void BufMgr::delete_hash_table(PageId page_number){
@@ -337,14 +337,14 @@ void BufMgr::delete_hash_table(PageId page_number){
     free(temp);
     return;
   }else{
-    while(curr->next!=NULL){
-      if(curr->next->page_number==page_number){
-        temp = curr->next;
-        curr->next= temp->next;
+    while(curr->next_page!=NULL){
+      if(curr->next_page->page_number==page_number){
+        temp = curr->next_page;
+        curr->next_page= temp->next_page;
         free(temp);
         return;
       }
-      curr = curr->next;
+      curr = curr->next_page;
     }
   }
 
