@@ -313,8 +313,12 @@ void BufMgr::write_hash_table(PageId page_number, int frame_number){
   bucket* temp;
   temp = hashtable[hash];
   if(temp==NULL) {
+    hashtable[hash] =(bucket*)malloc(sizeof(bucket));
     temp = (bucket*)malloc(sizeof(bucket));
-    hashtable[hash] = temp;
+    temp->page_number=page_number;
+    temp->frame_number=frame_number;
+    temp->next_page = NULL;
+    hashtable[hash]=temp;
   }
   
   else{
