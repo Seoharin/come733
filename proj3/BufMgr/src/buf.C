@@ -54,6 +54,12 @@ typedef struct bucket{
   bucket* next_page;
 }bucket;
 
+typedef struct hashtable
+{
+	Bucket* directory[HTSIZE];	
+}hashtable;
+
+
 
 vector<PageId>MRU;   
 vector<PageId>LRU;   
