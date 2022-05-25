@@ -252,11 +252,11 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
   return unpincnt;
 }
 
-int HashFunction(PageId page_number){
+int BufMgr:HashFunction(PageId page_number){
     return(A*page_number+B)/HTSIZE;
 }
 
-int FindFrame(PageId page_number){
+int BufMgr:FindFrame(PageId page_number){
   int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
@@ -266,7 +266,7 @@ int FindFrame(PageId page_number){
   }
 }
 
-void write_hash_table(PageId page_number, int frame_number){
+void BufMgr:write_hash_table(PageId page_number, int frame_number){
   int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
@@ -280,7 +280,7 @@ void write_hash_table(PageId page_number, int frame_number){
   }
 }
 
-void delete_hash_table(PageId page_number){
+void BufMgr:delete_hash_table(PageId page_number){
   int hash = HashFunction(page_number);
   bucket* temp;
   bucket* prev;
@@ -309,7 +309,7 @@ void delete_hash_table(PageId page_number){
 
 }
 
-PageId Find_Replacement_Page(){
+PageId BufMgr:Find_Replacement_Page(){
   PageId pageid;
   if(MRU.size()>0){
     int msize = MRU.size();
