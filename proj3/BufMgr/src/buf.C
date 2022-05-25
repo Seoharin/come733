@@ -74,11 +74,11 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
     bufDescr[i].dirty = FALSE;
   }
 
-  hashtable = (bucket*)malloc(HTSIZE*sizeof(bucket));
+
   for(int i=0;i<HTSIZE;i++){
-    hashtable[i].page_number=INVALID_PAGE;
-    hashtable[i].frame_number=-1;
-    hashtable[i].next_page = NULL;
+    hashtable[i]->page_number=INVALID_PAGE;
+    hashtable[i]->frame_number=-1;
+    hashtable[i]->next_page = NULL;
   }
 
   
@@ -259,7 +259,7 @@ int HashFunction(PageId page_number){
 int FindFrame(PageId page_number){
   int hash = HashFunction(page_number);
   bucket* temp;
-  temp = &hashtable[hash];
+  temp = hashtable[hash];
   while(1){
     if(temp->page_number == page_number) return temp->frame_number;
     temp = temp->next_page;
@@ -269,7 +269,7 @@ int FindFrame(PageId page_number){
 void write_hash_table(PageId page_number, int frame_number){
   int hash = HashFunction(page_number);
   bucket* temp;
-  temp = &hashtable[hash];
+  temp = hashtable[hash];
    while(1){
     if(temp->page_number == INVALID_PAGE){
       temp->page_number = page_number;
@@ -285,11 +285,11 @@ void delete_hash_table(PageId page_number){
   bucket* temp;
   bucket* prev;
   bucket* next;
-  temp = &hashtable[hash];
+  temp = hashtable[hash];
   
   if(temp->page_number == page_number){
     //맨 앞
-    *hashtable[hash] = temp->next_page;
+    hashtable[hash] = temp->next_page;
     free(temp);
      
   }else{
