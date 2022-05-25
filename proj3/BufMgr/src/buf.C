@@ -51,7 +51,7 @@ description* bufDescr; // array of buffer discriptions
 typedef struct bucket{
   PageId page_number;
   int frame_number;
-  *bucket overflow;
+  *bucket next_page;
 }bucket;
 
 bucket* hashtable;
@@ -76,9 +76,9 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
 
   hashtable = (bucket*)malloc(HTSIZE*sizeof(bucket));
   for(int i=0;i<HTSIZE;i++){
-    hashtable[i]->page_number=INVALID_PAGE;
-    hashtable[i]->frame_number=-1;
-    hashtable[i]->overflow = NULL;
+    hashtable[i].page_number=INVALID_PAGE;
+    hashtable[i].frame_number=-1;
+    hashtable[i]->next_page = NULL;
   }
 
   
@@ -261,22 +261,22 @@ int FindFrame(PageId page_number){
   bucket* temp;
   temp = hashtable[hash];
   while(1){
-    if(temp->page_number == page_number) return temp->frame_number;
-    temp = temp->overflow;
+    if(temp.page_number == page_number) return temp.frame_number;
+    temp = temp->next_page;
   }
 }
 
 void write_hash_table(PageId page_number, int frame_number){
   int hash = HashFunction(page_number);
   bucket* temp;
-  temp = hashtable[hash];
+  temp = &hashtable[hash];
    while(1){
-    if(temp->page_number == INVALID_PAGE){
-      temp->page_number = page_number;
-      temp->frame_number = frame_number;
+    if(temp.page_number == INVALID_PAGE){
+      temp.page_number = page_number;
+      temp.frame_number = frame_number;
       return;
     } 
-    temp = temp->overflow;
+    temp = temp->next_page;
   }
 }
 
@@ -285,23 +285,23 @@ void delete_hash_table(PageId page_number){
   bucket* temp, prev, next;
   temp = hashtable[hash];
   
-  if(temp->page_number == page_number){
+  if(temp.page_number == page_number){
     //맨 앞
-    next = temp->overflow;
+    next = temp->next_page;
     free(temp);
     &hashtable[hash] = next;
   }else{
     while(1){
      prev = temp;
-     temp = temp->overflow;
+     temp = temp->next_page;
 
-     if(temp->page_number == page_number){
-      next = temp->overflow;
-      prev->overflow = next;
+     if(temp.page_number == page_number){
+      next = temp->next_pate;
+      prev->next_page = next;
       free(temp);
       return;
     } 
-    temp = temp->overflow;
+    temp = temp->next_page;
   }
 }
 
