@@ -49,9 +49,10 @@ description* bufDescr; // array of buffer discriptions
 typedef struct bucket{
   PageId page_number;
   int frame_number;
+  *bucket overflow;
 }bucket;
 
-bucket* hashtable;
+bucket* hashtable[HTSIZE];
 
 vector<PageId>MRU;   
 vector<PageId>LRU;   
@@ -63,12 +64,20 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   bufPool = (Page*)malloc(numbuf*sizeof(Page));
   //allocate #numbuf * sizeof(description) to bufDescr
   bufDescr = (description*)malloc(numbuf*sizeof(description));
+
   for(int i=0;i<this->numBuffers;i++){
+    bufPool[i] = NULL;
     bufDescr[i].page_number=INVALID_PAGE;
     bufDescr[i].pin_count = 0;
     bufDescr[i].dirty = FALSE;
   }
 
+  hashtable = (bucket*)malloc(HTSIZE*sizeof(bucket));
+  for(int i=0;i<HTSIZE;i++){
+    hashtable[i].page_number=INVALID_PAGE;
+    hashtable[i].frame_number=-1;
+    hashtable[i].overflow = NULL;
+  }
 
   
 }
@@ -85,20 +94,39 @@ BufMgr::~BufMgr(){
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   //check if this page is in buffer pool
- 
+  if(PageId_in_a_DB == INVALID_PAGE) 
+    return MINIBASE_FIRST_ERROR(BUFMGR, BUFFERPAGENOTPINNED);
+
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number==PageId_in_a_DB){
        page = &bufPool[i];
-       bufDescr[i].pin_count +=1;
-      
+       bufDescr[i].pin_count +=1; 
        return OK;
     }
   }
   
     //otherwise, find a frame for this page
     //using LOVE/HATE replacement policy
-  
+  PageId replace_page_number = Find_Replacement_Page();
 
+   for(int i=0;i<this->numBuffers;i++){
+      if(bufDescr[i].page_number==replace_page_number){
+        if(bufDescr[i].dirty) flushPage(replace_page_number);
+        
+        frame = FindFrame(replace_page_number);
+
+        delete_hash_table(replace_page_number);
+        write_hash_table(PageId_in_a_DB, frame);
+        MINIBASE_DB->read_page(PageId_in_a_DB, &bufPool[PageId_in_a_DB]);
+        page = &bufPool[PageId_in_a_DB];
+        
+        bufDescr[i].page_number = PageId_in_a_DB;
+        bufDescr[i].pin_count++;
+        bufDescr[i].dirty=false;
+      }
+      
+    }
+    return OK;
 }//end pinPage
 
 //*************************************************************
@@ -173,7 +201,7 @@ Status BufMgr::flushPage(PageId pageid) {
     }
   }
 
-  return DONE;
+  return FAIL;
 }
     
 //*************************************************************
@@ -197,7 +225,7 @@ Status BufMgr::flushAllPages(){
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const char *filename){
   //put your code here
-
+  pinPage(PageId_in_a_DB,page,emptyPage);
   return OK;
 }
 
@@ -206,6 +234,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const 
 //************************************************************
 Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename){
   //put your code here
+  unpinPage(globalPageId_in_a_DB,dirty);
   return OK;
 }
 
@@ -221,6 +250,83 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
   return unpincnt;
 }
 
-int BufMgr::HashFunction(PageId page_number){
+int HashFunction(PageId page_number){
     return(A*page_number+B)/HTSIZE;
 }
+
+int FindFrame(PageId page_number){
+  hash = HashFunction(page_number);
+  bucket* temp;
+  temp = hashtable[hash];
+  while(1){
+    if(temp.page_number == page_number) return temp.frame_number;
+    temp = temp.overflow;
+  }
+}
+
+void write_hash_table(PageId page_number, int frame_number){
+  hash = HashFunction(page_number);
+  bucket* temp;
+  temp = hashtable[hash];
+   while(1){
+    if(temp.page_number == INVALID_PAGE){
+      temp.page_number = page_number;
+      temp.frame_number = frame_number;
+      return;
+    } 
+    temp = temp.overflow;
+  }
+}
+
+void delete_hash_table(pageId page_number){
+  hash = HashFunction(page_number);
+  bucket* temp, prev, next;
+  temp = hashtable[hash];
+  
+  if(temp.page_number == page_number){
+    //맨 앞
+    next = temp.overflow;
+    free(temp);
+    hashtable[hash] = next;
+  }else{
+    while(1){
+     prev = temp;
+     temp = temp.overflow;
+
+     if(temp.page_number == page_number){
+      next = temp.overflow;
+      prev.overflow = next;
+      free(temp);
+      return;
+    } 
+    temp = temp.overflow;
+  }
+}
+
+}
+
+PageId Find_Replacement_Page(){
+  PageId pageid;
+  if(MRU.size()>0){
+    msize = MRU.size();
+    pageid = MRU.front();
+    for(int i=0;i<msize-1;i++){
+      MRU[i]=MRU[i+1];
+    }
+    MRU.resize(msize-1);
+    return pageid;
+
+  }else if(LRU.size()>0){
+    lsize = LRU.size();
+    pageid = LRU.front();
+    for(int i=0;i<lsize-1;i++){
+      LRU[i]=LRU[i+1];
+    }
+    LRU.resize(lsize-1);
+    return pageid;
+
+  }else return INVALID_PAGE;
+
+}
+
+  
