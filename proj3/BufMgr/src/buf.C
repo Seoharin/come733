@@ -362,8 +362,10 @@ void BufMgr::delete_hash_table(PageId page_number){
 
 PageId BufMgr::Find_Replacement_Page(){
   PageId pageid;
-  if(MRU.size()>0){
-    int msize = MRU.size();
+  int msize = MRU.size();
+  int lsize = LRU.size();
+  if(msize()>0){
+    
     pageid = MRU.back();
     MRU.resize(msize-1);
     if(pageid==LRU.front()){
@@ -374,8 +376,8 @@ PageId BufMgr::Find_Replacement_Page(){
     }
     return pageid;
 
-  }else if(LRU.size()>0){
-    int lsize = LRU.size();
+  }else if(lsize>0){
+   
     pageid = LRU.front();
     for(int i=0;i<lsize-1;i++){
       LRU[i]=LRU[i+1];
