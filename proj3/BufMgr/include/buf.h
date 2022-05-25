@@ -86,7 +86,7 @@ public:
 
     unsigned int getNumUnpinnedBuffers();
 	// Get number of unpinned buffers
-    int BufMgr::HashFunction(PageId page_number);
+    int HashFunction(PageId page_number);
 };
 
 #endif
