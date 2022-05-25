@@ -164,8 +164,11 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
         MINIBASE_SHOW_ERRORS();
         return FAIL;
         }
+      int frame = FindFrame(page_num);
+      Page *page = bufPool+frame;
 
       bufDescr[i].pin_count-=1;
+      bufDescr[i].dirty = dirty;
       if(bufDescr[i].pin_count==0)
         {
           if(hate == TRUE){
@@ -175,14 +178,18 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
             LRU.push_back(page_num);
           }
         }
-      bufDescr[i].dirty = dirty;
-      break;
+      if(dirty==True && bufDescr[i].pin_count==0){
+        MINIBASE_DB->write_page(bufDescr[i].page_number,page);
+      }
+
+      return OK;
+
     }
     
   }
   
 
-  return OK;
+  return DONE;
 }
 
 //*************************************************************
