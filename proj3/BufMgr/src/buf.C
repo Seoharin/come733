@@ -113,7 +113,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
    //버퍼풀에 요청한 페이지가 없고, 비어있는 프레임이 있으면
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number==INVALID_PAGE){
-      int frame = FindFrame(bufDescr[i].page_number);
+      int frame = i;
       write_hash_table(PageId_in_a_DB,frame);
       if(emptyPage!=True){
          MINIBASE_DB->read_page(PageId_in_a_DB,page);
@@ -193,15 +193,14 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number==INVALID_PAGE){
        MINIBASE_DB->allocate_page(firstPageId,howmany);
-      
-       int frame = FindFrame(firstPageId); 
-       write_hash_table(firstPageId,frame);
+
+       write_hash_table(firstPageId)
        
        bufDescr[i].page_number = firstPageId;
        bufDescr[i].pin_count=1;
        bufDescr[i].dirty=false;
 
-       
+       int frame = FindFrame(firstPageId);
        memmove(bufPool+frame, firstpage, sizeof(Page));
     }
   }
@@ -363,10 +362,8 @@ void BufMgr::delete_hash_table(PageId page_number){
 
 PageId BufMgr::Find_Replacement_Page(){
   PageId pageid;
-  int msize = MRU.size();
-  int lsize = LRU.size();
-  if(msize>0){
-    
+  if(MRU.size()>0){
+    int msize = MRU.size();
     pageid = MRU.back();
     MRU.resize(msize-1);
     if(pageid==LRU.front()){
@@ -377,8 +374,8 @@ PageId BufMgr::Find_Replacement_Page(){
     }
     return pageid;
 
-  }else if(lsize>0){
-   
+  }else if(LRU.size()>0){
+    int lsize = LRU.size();
     pageid = LRU.front();
     for(int i=0;i<lsize-1;i++){
       LRU[i]=LRU[i+1];
