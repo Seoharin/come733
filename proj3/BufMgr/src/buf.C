@@ -115,7 +115,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
       if(bufDescr[i].page_number==replace_page_number){
         if(bufDescr[i].dirty) flushPage(replace_page_number);
         
-        frame = FindFrame(replace_page_number);
+        int frame = FindFrame(replace_page_number);
 
         delete_hash_table(replace_page_number);
         write_hash_table(PageId_in_a_DB, frame);
@@ -257,7 +257,7 @@ int HashFunction(PageId page_number){
 }
 
 int FindFrame(PageId page_number){
-  hash = HashFunction(page_number);
+  int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
   while(1){
@@ -267,7 +267,7 @@ int FindFrame(PageId page_number){
 }
 
 void write_hash_table(PageId page_number, int frame_number){
-  hash = HashFunction(page_number);
+  int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
    while(1){
@@ -280,8 +280,8 @@ void write_hash_table(PageId page_number, int frame_number){
   }
 }
 
-void delete_hash_table(pageId page_number){
-  hash = HashFunction(page_number);
+void delete_hash_table(PageId page_number){
+  int hash = HashFunction(page_number);
   bucket* temp, prev, next;
   temp = hashtable[hash];
   
