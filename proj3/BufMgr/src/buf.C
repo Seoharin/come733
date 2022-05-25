@@ -54,9 +54,6 @@ typedef struct bucket{
   bucket* next_page;
 }bucket;
 
-typedef struct hashtable{
- bucket* directory[HTSIZE]; 
-}hashtable;
 
 vector<PageId>MRU;   
 vector<PageId>LRU;   
@@ -76,7 +73,7 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
     bufDescr[i].dirty = FALSE;
   }
 
-  hashtable = (bucket**)malloc(sizeof(bucket*)*HTSIZE);
+  hashtable = new bucket*[HTSIZE];
   for(int i=0;i<HTSIZE;i++){
     hashtable[i]=NULL;
   }
