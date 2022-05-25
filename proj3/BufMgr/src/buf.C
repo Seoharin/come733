@@ -133,7 +133,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 
    for(int i=0;i<this->numBuffers;i++){
       if(bufDescr[i].page_number==replace_page_number){
-        if(bufDescr[i].dirty) flushPage(replace_page_number);
+        if(bufDescr[i].dirty==True) flushPage(replace_page_number);
         
         int frame = this->FindFrame(replace_page_number);
 
@@ -226,7 +226,9 @@ Status BufMgr::flushPage(PageId pageid) {
   // memory -> disk 
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number == pageid){
-      MINIBASE_DB->write_page(i,&bufPool[i]);
+      int frame = FindFrame(pageid);
+      delete_hash_table(pageid);
+      MINIBASE_DB->write_page(pageid,&bufPool[frame]);
       bufDescr[i].dirty=FALSE;
       return OK;
     }
@@ -241,7 +243,7 @@ Status BufMgr::flushPage(PageId pageid) {
 Status BufMgr::flushAllPages(){
   //put your code here
   for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i].dirty==TRUE){
+    if(bufDescr[i].dirty==TRUE&&bufDescr[i].page_number!=INVALID_PAGE){
       flushPage(bufDescr[i].page_number);
       } 
     }
