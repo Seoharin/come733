@@ -64,12 +64,12 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   //allocate #numbuf * sizeof(description) to bufDescr
   bufDescr = (description*)malloc(numbuf*sizeof(description));
   for(int i=0;i<this->numBuffers;i++){
-    bufDescr[i]->page_number=INVALID_PAGE;
-    bufDescr[i]->pin_count = 0;
-    bufDescr[i]->dirty = FALSE;
+    bufDescr[i].page_number=INVALID_PAGE;
+    bufDescr[i].pin_count = 0;
+    bufDescr[i].dirty = FALSE;
   }
 
-  htable =
+
   
 }
 
@@ -87,9 +87,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   //check if this page is in buffer pool
  
   for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==PageId_in_a_DB){
-       page = bufPool[i];
-       bufDescr[i]->pin_count +=1;
+    if(bufDescr[i].page_number==PageId_in_a_DB){
+       page = &bufPool[i];
+       bufDescr[i].pin_count +=1;
       
        return OK;
     }
@@ -107,16 +107,16 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   // put your code here
   for(int i =0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==page_num) {
-      if(bufDescr[i]->pin_count==0) {
+    if(bufDescr[i].page_number==page_num) {
+      if(bufDescr[i].pin_count==0) {
         MINIBASE_SHOW_ERRORS();
         return FAIL;
         }
 
-      bufDescr[i]->pin_count-=1;
-      if(bufDescr[i]->pin_count==0)
+      bufDescr[i].pin_count-=1;
+      if(bufDescr[i].pin_count==0)
 
-      bufDescr[i]->dirty = dirty;
+      bufDescr[i].dirty = dirty;
       break;
     }
     
@@ -132,7 +132,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   // put your code here
   MINIBASE_DB->allocate_page(firstPageId);
-  if(pinPage(firstPageId,firstpage,TRUE,this->filename)!=OK){
+  if(pinPage(firstPageId,firstpage,TRUE)!=OK){
 
     MINIBASE_FIRST_ERROR(BUFMGR,BUFMGRMEMORYERROR);
     MINIBASE_DB->deallocate_page(firstPageId);
@@ -148,10 +148,10 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
 Status BufMgr::freePage(PageId globalPageId){
   // put your code here
   for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==globalPageId) {
-      bufDescr[i]->page_number = INVALID_PAGE; 
-      bufDescr[i]->pin_count=0;
-      bufDescr[i]->dirty=FALSE;
+    if(bufDescr[i].page_number==globalPageId) {
+      bufDescr[i].page_number = INVALID_PAGE; 
+      bufDescr[i].pin_count=0;
+      bufDescr[i].dirty=FALSE;
       // deallocate bufPool[i]
       MINIBASE_DB->deallocate_page(i);
       return OK;
@@ -166,7 +166,7 @@ Status BufMgr::freePage(PageId globalPageId){
 Status BufMgr::flushPage(PageId pageid) {
   // memory -> disk 
   for(int i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number == pageid){
+    if(bufDescr[i].page_number == pageid){
       MINIBASE_DB->write_page(i,&bufPool[i]);
       bufDescr[i].dirty=FALSE;
       return OK;
@@ -183,7 +183,7 @@ Status BufMgr::flushAllPages(){
   //put your code here
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].dirty==TRUE){
-      flushPage(bufDescr[i]->page_number);
+      flushPage(bufDescr[i].page_number);
       } 
     }
     return OK; 
@@ -197,6 +197,7 @@ Status BufMgr::flushAllPages(){
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const char *filename){
   //put your code here
+
   return OK;
 }
 
@@ -220,6 +221,6 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
   return unpincnt;
 }
 
-int BufMgr::HashFunction(Pageid page_number){
+int BufMgr::HashFunction(PageId page_number){
     return(A*page_number+B)/HTSIZE;
 }
