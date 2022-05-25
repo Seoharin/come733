@@ -67,6 +67,7 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   this->numBuffers = numbuf;
   //allocate #numbuf * sizeof(Page) to bufPool
   bufPool = (Page*)malloc(numbuf*sizeof(Page));
+  memset(bufPool, 0, numbuf * sizeof(Page));
   //allocate #numbuf * sizeof(description) to bufDescr
   bufDescr = (description*)malloc(numbuf*sizeof(description));
 
@@ -114,8 +115,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
     if(bufDescr[i].page_number==INVALID_PAGE){
       int frame = FindFrame(bufDescr[i].page_number);
       write_hash_table(PageId_in_a_DB,frame);
-      MINIBASE_DB->read_page(PageId_in_a_DB,page);
-      memmove(bufPool+frame, page, sizeof(Page));
+      if(emptyPage!=True){
+         MINIBASE_DB->read_page(PageId_in_a_DB,page);
+         memmove(bufPool+frame, page, sizeof(Page));
+      }
+     
       bufDescr[i].pin_count++;
       bufDescr[i].page_number=PageId_in_a_DB;
       bufDescr[i].dirty=false;
@@ -135,8 +139,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 
         this->delete_hash_table(replace_page_number);
         this->write_hash_table(PageId_in_a_DB, frame);
-        MINIBASE_DB->read_page(PageId_in_a_DB, page);
-        memmove(bufPool+frame,page,sizeof(Page));
+        if(emptyPage!=True){
+          MINIBASE_DB->read_page(PageId_in_a_DB, page);
+          memmove(bufPool+frame,page,sizeof(Page);)
+        }
+      
         bufDescr[i].page_number = PageId_in_a_DB;
         bufDescr[i].pin_count++;
         bufDescr[i].dirty=false;
@@ -309,7 +316,7 @@ void BufMgr::write_hash_table(PageId page_number, int frame_number){
   }
     temp->page_number=page_number;
     temp->frame_number=frame_number;
-    temp->next_page = NULL;
+    temp->next = NULL;
 }
 
 void BufMgr::delete_hash_table(PageId page_number){
@@ -330,14 +337,14 @@ void BufMgr::delete_hash_table(PageId page_number){
     free(temp);
     return;
   }else{
-    while(curr->next_page!=NULL){
-      if(curr->next_page->page_number==page_number){
-        temp = curr->next_page;
-        curr->next_page= temp->next_page;
+    while(curr->next!=NULL){
+      if(curr->next->page_number==page_number){
+        temp = curr->next;
+        curr->next= temp->next;
         free(temp);
         return;
       }
-      curr = curr->next_page;
+      curr = curr->next;
     }
   }
 
