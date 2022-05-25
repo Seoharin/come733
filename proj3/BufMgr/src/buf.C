@@ -5,7 +5,8 @@
 #include "minirel.h"
 #include "buf.h"
 #include <vector>
-
+#define A 2
+#define B 3
 
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
@@ -36,24 +37,39 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 //************************************************************
 
 
-typedef description{
-  PageId page_number = -1;
+typedef struct description{
+  PageId page_number;
   int pin_count;
   bool dirty;
-};
+}description;
+
+
 description* bufDescr; // array of buffer discriptions
 
-vector<int>hate;
-vector<int>love;
+typedef struct bucket{
+  PageId page_number;
+  int frame_number;
+}bucket;
 
+bucket* hashtable;
+
+vector<PageId>MRU;   
+vector<PageId>LRU;   
 
 BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   
-  this.numBuffers = numbuf;
+  this->numBuffers = numbuf;
   //allocate #numbuf * sizeof(Page) to bufPool
   bufPool = (Page*)malloc(numbuf*sizeof(Page));
   //allocate #numbuf * sizeof(description) to bufDescr
   bufDescr = (description*)malloc(numbuf*sizeof(description));
+  for(int i=0;i<this->numBuffers;i++){
+    bufDescr[i]->page_number=INVALID_PAGE;
+    bufDescr[i]->pin_count = 0;
+    bufDescr[i]->dirty = FALSE;
+  }
+
+  htable =
   
 }
 
@@ -93,46 +109,36 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   for(int i =0;i<this->numBuffers;i++){
     if(bufDescr[i]->page_number==page_num) {
       if(bufDescr[i]->pin_count==0) {
-         return MINIBASE_FIRST_ERROR(BUFMGR, INTERNALERROR);
+        MINIBASE_SHOW_ERRORS();
+        return FAIL;
         }
 
       bufDescr[i]->pin_count-=1;
       if(bufDescr[i]->pin_count==0)
-      //put in replacement candidates
-        
+
       bufDescr[i]->dirty = dirty;
-      return OK;
+      break;
     }
     
   }
   
 
-  return FAIL;
+  return OK;
 }
 
 //*************************************************************
 //** This is the implementation of newPage
 //************************************************************
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
-  // find a frame in the buffer pool for the first page
-  int i;
-  
-  for(i=0;i<this->numBuffers;i++){
-      if(bufDescr[i]->page_number==-1){
-         DB->allocate_page(firstPageId);
-         firstpage = bufPool[i];
-         return OK;
-      }
-  }
-  
- //else buffer is full
-  //for(i=0;i<this->numBuffers;i++){
-  //   DB->deallocate_page(bufDescr[i]->page_number);
- // }
-  return MINIBASE_FIRST_ERROR(BUFMGR, BUFFERFULL);
-  
+  // put your code here
+  MINIBASE_DB->allocate_page(firstPageId);
+  if(pinPage(firstPageId,firstpage,TRUE,this->filename)!=OK){
 
-  
+    MINIBASE_FIRST_ERROR(BUFMGR,BUFMGRMEMORYERROR);
+    MINIBASE_DB->deallocate_page(firstPageId);
+    return FAIL;
+  }
+
   return OK;
 }
 
@@ -141,16 +147,17 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
 //************************************************************
 Status BufMgr::freePage(PageId globalPageId){
   // put your code here
-  int i;
-  for(i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number==globalPageId) break;
+  for(int i=0;i<this->numBuffers;i++){
+    if(bufDescr[i]->page_number==globalPageId) {
+      bufDescr[i]->page_number = INVALID_PAGE; 
+      bufDescr[i]->pin_count=0;
+      bufDescr[i]->dirty=FALSE;
+      // deallocate bufPool[i]
+      MINIBASE_DB->deallocate_page(i);
+      return OK;
+    } 
   }
-
-  // deallocate bufPool[i]
-  Page *page = bufPool[i];
-  free(page);
-
-  return OK;
+  return FAIL;
 }
 
 //*************************************************************
@@ -158,18 +165,15 @@ Status BufMgr::freePage(PageId globalPageId){
 //************************************************************
 Status BufMgr::flushPage(PageId pageid) {
   // memory -> disk 
-  // considering dirty bit
-  int i;
-  for(i=0;i<this->numBuffers;i++){
-    if(bufDescr[i]->page_number == pageid) break;
+  for(int i=0;i<this->numBuffers;i++){
+    if(bufDescr[i]->page_number == pageid){
+      MINIBASE_DB->write_page(i,&bufPool[i]);
+      bufDescr[i].dirty=FALSE;
+      return OK;
+    }
   }
-  
-  Page *page = bufPool[i];
-  if(bufDescr[i]->dirty) 
-    DB->write_page(pageid, page);
 
-  DB->deallocate_page(pageid)
-  return OK;
+  return FALSE;
 }
     
 //*************************************************************
@@ -178,9 +182,12 @@ Status BufMgr::flushPage(PageId pageid) {
 Status BufMgr::flushAllPages(){
   //put your code here
   for(int i=0;i<this->numBuffers;i++){
-    flushPage(bufDescr[i]->page_number);
-  }
-  return OK;
+    if(bufDescr[i].dirty==TRUE){
+      flushPage(bufDescr[i]->page_number);
+      } 
+    }
+    return OK; 
+ 
 }
 
 
@@ -211,4 +218,8 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
     if(bufDescr[i]->pin_count ==0) unpincnt++;
   }
   return unpincnt;
+}
+
+int BufMgr::HashFunction(Pageid page_number){
+    return(A*page_number+B)/HTSIZE;
 }
