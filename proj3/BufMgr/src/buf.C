@@ -285,19 +285,19 @@ void delete_hash_table(PageId page_number){
   bucket* temp;
   bucket* prev;
   bucket* next;
-  temp = hashtable[hash];
+  temp = &hashtable[hash];
   
-  if(temp.page_number == page_number){
+  if(temp->page_number == page_number){
     //맨 앞
     next = temp->next_page;
     free(temp);
-    hashtable[hash] = next;
+    hashtable[hash] = &next;
   }else{
     while(1){
      prev = temp;
      temp = temp->next_page;
 
-     if(temp.page_number == page_number){
+     if(temp->page_number == page_number){
       next = temp->next_page;
       prev->next_page = next;
       free(temp);
