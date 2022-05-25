@@ -88,7 +88,7 @@ public:
 	// Get number of unpinned buffers
     int HashFunction(PageId page_number); 
     PageId Find_Replacement_Page();
-    void delete_hash_table(pageId page_number);
+    void delete_hash_table(PageId page_number);
     void write_hash_table(PageId page_number, int frame_number);
     int FindFrame(PageId page_number);
 };
