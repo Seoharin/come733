@@ -76,9 +76,7 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
 
 
   for(int i=0;i<HTSIZE;i++){
-    hashtable[i]->page_number=INVALID_PAGE;
-    hashtable[i]->frame_number=-1;
-    hashtable[i]->next_page = NULL;
+    hashtable[i]=NULL;
   }
 
   
@@ -145,7 +143,14 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
 
       bufDescr[i].pin_count-=1;
       if(bufDescr[i].pin_count==0)
-
+        {
+          if(hate == TRUE){
+            //MRU
+            MRU.push_back(page_num);
+          }else{
+            LRU.push_back(page_num);
+          }
+        }
       bufDescr[i].dirty = dirty;
       break;
     }
@@ -322,10 +327,7 @@ PageId BufMgr::Find_Replacement_Page(){
 
   }else if(LRU.size()>0){
     int lsize = LRU.size();
-    pageid = LRU.front();
-    for(int i=0;i<lsize-1;i++){
-      LRU[i]=LRU[i+1];
-    }
+    pageid = LRU.back();
     LRU.resize(lsize-1);
     return pageid;
 
