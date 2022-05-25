@@ -376,7 +376,7 @@ PageId BufMgr::Find_Replacement_Page(){
     }
     return pageid;
 
-  }else if(lsize()>0){
+  }else if(lsize>0){
    
     pageid = LRU.front();
     for(int i=0;i<lsize-1;i++){
