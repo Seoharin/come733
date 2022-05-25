@@ -193,14 +193,15 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number==INVALID_PAGE){
        MINIBASE_DB->allocate_page(firstPageId,howmany);
-
-       write_hash_table(firstPageId);
+      
+       int frame = FindFrame(firstPageId); 
+       write_hash_table(firstPageId,frame);
        
        bufDescr[i].page_number = firstPageId;
        bufDescr[i].pin_count=1;
        bufDescr[i].dirty=false;
 
-       int frame = FindFrame(firstPageId);
+       
        memmove(bufPool+frame, firstpage, sizeof(Page));
     }
   }
