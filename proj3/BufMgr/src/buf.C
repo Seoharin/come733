@@ -114,7 +114,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
       int frame = i;
       write_hash_table(PageId_in_a_DB,i);
       MINIBASE_DB->read_page(PageId_in_a_DB,page);
-      bufPool[i] = *page;
+      memmove(bufPool+frame, page, sizeof(page));
       bufDescr[i].pin_count++;
       bufDescr[i].page_number=PageId_in_a_DB;
       bufDescr[i].dirty=false;
@@ -281,9 +281,12 @@ int BufMgr::FindFrame(PageId page_number){
   int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
-  while(1){
-    if(temp->page_number == page_number) return temp->frame_number;
-    temp = temp->next_page;
+
+  while(temp!=NULL){
+    if(temp->page_number==page_number){
+      return temp->frame_number;
+    }
+    temp=temp->next_page;
   }
 }
 
@@ -291,42 +294,51 @@ void BufMgr::write_hash_table(PageId page_number, int frame_number){
   int hash = HashFunction(page_number);
   bucket* temp;
   temp = hashtable[hash];
-   while(1){
-    if(temp->page_number == INVALID_PAGE){
-      temp->page_number = page_number;
-      temp->frame_number = frame_number;
-      return;
-    } 
-    temp = temp->next_page;
+  if(temp==NULL) {
+    temp = (bucket*)malloc(sizeof(bucket));
+    hashtable[hash] = temp;
   }
+  
+  else{
+    while(temp->next_page!=NULL){
+      temp = temp->next_page;
+    }
+    temp->next_page = (bucket*)malloc(sizeof(bucket));
+
+  }
+    temp->page_number=page_number;
+    temp->frame_number=frame_number;
+    temp->next = NULL;
 }
 
 void BufMgr::delete_hash_table(PageId page_number){
   int hash = HashFunction(page_number);
   bucket* temp;
-  bucket* prev;
-  bucket* next;
-  temp = hashtable[hash];
+  bucket* curr;
+  curr = hashtable[hash];
+  temp = curr;
   
-  if(temp->page_number == page_number){
-    //맨 앞
-    hashtable[hash] = temp->next_page;
-    free(temp);
-     
-  }else{
-    while(1){
-     prev = temp;
-     temp = temp->next_page;
-
-     if(temp->page_number == page_number){
-      next = temp->next_page;
-      prev->next_page = next;
-      free(temp);
-      return;
-    } 
-    temp = temp->next_page;
+  if(curr==NULL){
+    return MINIBASE_FIRST_ERROR(BUFMGR, HASHREMOVEERROR);
   }
-}
+
+  if(curr->page_number==page_number){
+    //맨 앞
+    curr = curr->next_page;
+    hashtable[hash] = curr;
+    free(temp);
+    return;
+  }else{
+    while(curr->next!=NULL){
+      if(curr->next->page_number==page_number){
+        temp = curr->next;
+        curr->next= temp->next;
+        free(temp);
+        return;
+      }
+      curr = curr->next;
+    }
+  }
 
 }
 
