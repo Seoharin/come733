@@ -51,7 +51,7 @@ description* bufDescr; // array of buffer discriptions
 typedef struct bucket{
   PageId page_number;
   int frame_number;
-  *bucket next_page;
+  struct *bucket next_page;
 }bucket;
 
 bucket* hashtable;
