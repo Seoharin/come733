@@ -32,6 +32,11 @@ static const char* bufErrMsgs[] = {
 // with minibase system 
 static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
+PageId Find_Replacement_Page();
+void delete_hash_table(pageId page_number);
+void write_hash_table(PageId page_number, int frame_number);
+int FindFrame(PageId page_number);
+
 //*************************************************************
 //** This is the implementation of BufMgr
 //************************************************************
@@ -74,9 +79,9 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
 
   hashtable = (bucket*)malloc(HTSIZE*sizeof(bucket));
   for(int i=0;i<HTSIZE;i++){
-    hashtable[i].page_number=INVALID_PAGE;
-    hashtable[i].frame_number=-1;
-    hashtable[i].overflow = NULL;
+    hashtable[i]->page_number=INVALID_PAGE;
+    hashtable[i]->frame_number=-1;
+    hashtable[i]->overflow = NULL;
   }
 
   
@@ -259,8 +264,8 @@ int FindFrame(PageId page_number){
   bucket* temp;
   temp = hashtable[hash];
   while(1){
-    if(temp.page_number == page_number) return temp.frame_number;
-    temp = temp.overflow;
+    if(temp->page_number == page_number) return temp->frame_number;
+    temp = temp->overflow;
   }
 }
 
@@ -269,12 +274,12 @@ void write_hash_table(PageId page_number, int frame_number){
   bucket* temp;
   temp = hashtable[hash];
    while(1){
-    if(temp.page_number == INVALID_PAGE){
-      temp.page_number = page_number;
-      temp.frame_number = frame_number;
+    if(temp->page_number == INVALID_PAGE){
+      temp->page_number = page_number;
+      temp->frame_number = frame_number;
       return;
     } 
-    temp = temp.overflow;
+    temp = temp->overflow;
   }
 }
 
@@ -283,23 +288,23 @@ void delete_hash_table(pageId page_number){
   bucket* temp, prev, next;
   temp = hashtable[hash];
   
-  if(temp.page_number == page_number){
+  if(temp->page_number == page_number){
     //맨 앞
-    next = temp.overflow;
+    next = temp->overflow;
     free(temp);
     hashtable[hash] = next;
   }else{
     while(1){
      prev = temp;
-     temp = temp.overflow;
+     temp = temp->overflow;
 
-     if(temp.page_number == page_number){
-      next = temp.overflow;
-      prev.overflow = next;
+     if(temp->page_number == page_number){
+      next = temp->overflow;
+      prev->overflow = next;
       free(temp);
       return;
     } 
-    temp = temp.overflow;
+    temp = temp->overflow;
   }
 }
 
