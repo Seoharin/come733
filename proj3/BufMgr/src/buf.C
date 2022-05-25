@@ -32,10 +32,7 @@ static const char* bufErrMsgs[] = {
 // with minibase system 
 static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
-PageId Find_Replacement_Page();
-void delete_hash_table(pageId page_number);
-void write_hash_table(PageId page_number, int frame_number);
-int FindFrame(PageId page_number);
+
 
 //*************************************************************
 //** This is the implementation of BufMgr
