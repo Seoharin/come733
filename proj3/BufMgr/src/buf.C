@@ -364,7 +364,7 @@ PageId BufMgr::Find_Replacement_Page(){
   PageId pageid;
   int msize = MRU.size();
   int lsize = LRU.size();
-  if(msize()>0){
+  if(msize>0){
     
     pageid = MRU.back();
     MRU.resize(msize-1);
