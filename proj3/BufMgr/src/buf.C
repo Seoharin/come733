@@ -5,8 +5,8 @@
 #include "minirel.h"
 #include "buf.h"
 #include <vector>
-#define A 2
-#define B 3
+#define A 1
+#define B 1
 
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
@@ -103,7 +103,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   for(int i=0;i<this->numBuffers;i++){
     //버퍼풀에 요청한 페이지가 있으면
     if(bufDescr[i].page_number==PageId_in_a_DB){
-       page = &bufPool[i];
+       int frame = FindFrame(PageId_in_a_DB);
+       page = bufPool+frame;
        bufDescr[i].pin_count +=1; 
        return OK;
     }
@@ -111,10 +112,10 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
    //버퍼풀에 요청한 페이지가 없고, 비어있는 프레임이 있으면
   for(int i=0;i<this->numBuffers;i++){
     if(bufDescr[i].page_number==INVALID_PAGE){
-      int frame = i;
-      write_hash_table(PageId_in_a_DB,i);
+      int frame = FindFrame(bufDescr[i].page_number);
+      write_hash_table(PageId_in_a_DB,frame);
       MINIBASE_DB->read_page(PageId_in_a_DB,page);
-      memmove(bufPool+frame, page, sizeof(page));
+      memmove(bufPool+frame, page, sizeof(Page));
       bufDescr[i].pin_count++;
       bufDescr[i].page_number=PageId_in_a_DB;
       bufDescr[i].dirty=false;
@@ -135,7 +136,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
         this->delete_hash_table(replace_page_number);
         this->write_hash_table(PageId_in_a_DB, frame);
         MINIBASE_DB->read_page(PageId_in_a_DB, page);
-        bufPool[i]=*page;
+        memmove(bufPool+frame,page,sizeof(Page);)
         bufDescr[i].page_number = PageId_in_a_DB;
         bufDescr[i].pin_count++;
         bufDescr[i].dirty=false;
@@ -308,7 +309,7 @@ void BufMgr::write_hash_table(PageId page_number, int frame_number){
   }
     temp->page_number=page_number;
     temp->frame_number=frame_number;
-    temp->next_page = NULL;
+    temp->next = NULL;
 }
 
 void BufMgr::delete_hash_table(PageId page_number){
@@ -319,8 +320,8 @@ void BufMgr::delete_hash_table(PageId page_number){
   temp = curr;
   
   //if(curr==NULL){
-  //   MINIBASE_FIRST_ERROR(BUFMGR,HASHREMOVEERROR);
-  //}
+  //  return MINIBASE_FIRST_ERROR(BUFMGR, HASHREMOVEERROR);
+  // }
 
   if(curr->page_number==page_number){
     //맨 앞
@@ -329,14 +330,14 @@ void BufMgr::delete_hash_table(PageId page_number){
     free(temp);
     return;
   }else{
-    while(curr->next_page!=NULL){
-      if(curr->next_page->page_number==page_number){
-        temp = curr->next_page;
-        curr->next_page= temp->next_page;
+    while(curr->next!=NULL){
+      if(curr->next->page_number==page_number){
+        temp = curr->next;
+        curr->next= temp->next;
         free(temp);
         return;
       }
-      curr = curr->next_page;
+      curr = curr->next;
     }
   }
 
