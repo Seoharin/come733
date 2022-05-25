@@ -194,7 +194,7 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
     if(bufDescr[i].page_number==INVALID_PAGE){
        MINIBASE_DB->allocate_page(firstPageId,howmany);
 
-       write_hash_table(firstPageId)
+       write_hash_table(firstPageId);
        
        bufDescr[i].page_number = firstPageId;
        bufDescr[i].pin_count=1;
