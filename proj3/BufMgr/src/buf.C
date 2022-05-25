@@ -289,7 +289,7 @@ void delete_hash_table(PageId page_number){
   
   if(temp->page_number == page_number){
     //맨 앞
-    hashtable[hash] = temp->next_page;
+    *hashtable[hash] = temp->next_page;
     free(temp);
      
   }else{
