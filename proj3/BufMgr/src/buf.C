@@ -54,7 +54,7 @@ typedef struct bucket{
   *bucket overflow;
 }bucket;
 
-bucket* hashtable[HTSIZE];
+bucket* hashtable;
 
 vector<PageId>MRU;   
 vector<PageId>LRU;   
@@ -289,7 +289,7 @@ void delete_hash_table(PageId page_number){
     //맨 앞
     next = temp->overflow;
     free(temp);
-    hashtable[hash] = next;
+    &hashtable[hash] = next;
   }else{
     while(1){
      prev = temp;
@@ -310,7 +310,7 @@ void delete_hash_table(PageId page_number){
 PageId Find_Replacement_Page(){
   PageId pageid;
   if(MRU.size()>0){
-    msize = MRU.size();
+    int msize = MRU.size();
     pageid = MRU.front();
     for(int i=0;i<msize-1;i++){
       MRU[i]=MRU[i+1];
@@ -319,7 +319,7 @@ PageId Find_Replacement_Page(){
     return pageid;
 
   }else if(LRU.size()>0){
-    lsize = LRU.size();
+    int lsize = LRU.size();
     pageid = LRU.front();
     for(int i=0;i<lsize-1;i++){
       LRU[i]=LRU[i+1];
