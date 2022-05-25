@@ -109,16 +109,16 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   
     //otherwise, find a frame for this page
     //using LOVE/HATE replacement policy
-  PageId replace_page_number = Find_Replacement_Page();
+  PageId replace_page_number = this->Find_Replacement_Page();
 
    for(int i=0;i<this->numBuffers;i++){
       if(bufDescr[i].page_number==replace_page_number){
         if(bufDescr[i].dirty) flushPage(replace_page_number);
         
-        int frame = FindFrame(replace_page_number);
+        int frame = this->FindFrame(replace_page_number);
 
-        delete_hash_table(replace_page_number);
-        write_hash_table(PageId_in_a_DB, frame);
+        this->delete_hash_table(replace_page_number);
+        this->write_hash_table(PageId_in_a_DB, frame);
         MINIBASE_DB->read_page(PageId_in_a_DB, &bufPool[PageId_in_a_DB]);
         page = &bufPool[PageId_in_a_DB];
         
