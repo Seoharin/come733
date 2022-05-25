@@ -114,7 +114,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
       int frame = i;
       write_hash_table(PageId_in_a_DB,i);
       MINIBASE_DB->read_page(PageId_in_a_DB,page);
-      bufPool[i] = page;
+      &bufPool[i] = page;
       bufDescr[i].pin_count++;
       bufDescr[i].page_number=PageId_in_a_DB;
       bufDescr[i].dirty=false;
@@ -135,7 +135,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
         this->delete_hash_table(replace_page_number);
         this->write_hash_table(PageId_in_a_DB, frame);
         MINIBASE_DB->read_page(PageId_in_a_DB, page);
-        bufPool[i]=page;
+        &bufPool[i]=page;
         bufDescr[i].page_number = PageId_in_a_DB;
         bufDescr[i].pin_count++;
         bufDescr[i].dirty=false;
