@@ -58,8 +58,8 @@ sortMerge::sortMerge(
   Sort(filename1, fname1, len_in1, in1,  t1_str_sizes,  join_col_in1,  order,  amt_of_mem, s);
 	Sort(filename2, fname2, len_in2, in2,  t2_str_sizes,  join_col_in2,  order,  amt_of_mem, s);
 
-  file1 = new HeapFile(flie1,s);
-  file2 = new HeapFile(file2,s);
+  file1 = new HeapFile(fname1,s);
+  file2 = new HeapFile(fname2,s);
   mergedfile = new HeapFile(filename3,s);
   
   //if(t1_str_sizes[join_col_in1]!=t2_str_sizes[join_col_in2]){
@@ -91,7 +91,7 @@ sortMerge::sortMerge(
       char *mergerec = (char*)malloc(merge_len);
       memmove(mergerec, rrec, rlen);
       memmove(mergerec+rlen, srec, slen);
-      mergedfile->insertRecord(mergerec, rlen+slen);
+      mergedfile->insertRecord(mergerec, rlen+slen,mid);
 
     }
   }
