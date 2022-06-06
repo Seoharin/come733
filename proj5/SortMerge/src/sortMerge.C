@@ -66,8 +66,8 @@ sortMerge::sortMerge(
   //  return;
   //}
 
-  Scan *sscan = file1->openScan(s);
-  Scan *rscan = file2->openScan(s);
+ 
+  
   
   char *srec = (char*)malloc(sizeof(s_len));
   char *rrec = (char*)malloc(sizeof(r_len));
@@ -77,11 +77,29 @@ sortMerge::sortMerge(
 
   int cmp = 0;
   Status st1,st2;
+  
+  Scan *sscan = file1->openScan(s);
   st1 = rscan->getNext(rid, rrec, rlen);
-  st2 = sscan->getNext(sid, srec, slen); 
-  while(1){
+  while(st1 !=OK){
+
+    Scan *rscan = file2->openScan(s);
+    st2 = sscan->getNext(sid, srec, slen); 
+    while(st2!=OK){
+      if(cmp==0){
+        memmove(mergerec, rrec, rlen);
+        memmove(mergerec+rlen, srec, slen);
+        mergedfile->insertRecord(mergerec, rlen+slen,mid);
+        st2 = sscan->getNext(sid, srec, slen); 
+      }
+
+    }
+    st1 = rscan->getNext(rid, rrec, rlen);
+  }
+
+  /*while(1){
+
     
-    if(st1!=OK && st2!=OK) break;
+    if(st1!=OK || st2!=OK) break;
     
     cmp = tupleCmp(rrec,srec);
   
@@ -102,7 +120,7 @@ sortMerge::sortMerge(
       st2 = sscan->getNext(sid, srec, slen); 
 
       }
-  }
+  }*/
  
   delete sscan;
   file1->deleteFile();
