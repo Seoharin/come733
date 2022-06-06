@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include <assert.h>
 #include "sortMerge.h"
@@ -79,16 +78,22 @@ sortMerge::sortMerge(
   int cmp = 0;
   Status st1,st2;
   st1 = rscan->getNext(rid, rrec, rlen);
-  st2 = sscan->getNext(sid, srec,slen); 
+  st2 = sscan->getNext(sid, srec, slen); 
   while(1){
-    if(st1!=OK || st2!=OK) break;
+    if(st1!=OK && st2!=OK) break;
     
     cmp = tupleCmp(rrec,srec);
 
-    if(cmp>0) st2 = sscan->getNext(sid, srec, slen);
-    else if(cmp<0) st1 = rscan->getNext(rid,rrec,rlen);
-    else{
-      char *mergerec = (char*)malloc(merge_len);
+    if(cmp>0) {
+      st2 = sscan->getNext(sid, srec, slen);
+      //cmp = tupleCmp(rrec,srec);
+      }
+    else if(cmp<0) {
+      st1 = rscan->getNext(rid,rrec,rlen);
+      //cmp = tupleCmp(rrec,srec);
+    }
+    else
+      char *mergerec = (char*)malloc(sizeof(merge_len));
       memmove(mergerec, rrec, rlen);
       memmove(mergerec+rlen, srec, slen);
       mergedfile->insertRecord(mergerec, rlen+slen,mid);
