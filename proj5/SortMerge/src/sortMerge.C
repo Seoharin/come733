@@ -83,7 +83,7 @@ sortMerge::sortMerge(
     if(st1!=OK && st2!=OK) break;
     
     cmp = tupleCmp(rrec,srec);
-
+  
     if(cmp>0) {
       st2 = sscan->getNext(sid, srec, slen);
       //cmp = tupleCmp(rrec,srec);
@@ -96,7 +96,8 @@ sortMerge::sortMerge(
       memmove(mergerec, rrec, rlen);
       memmove(mergerec+rlen, srec, slen);
       mergedfile->insertRecord(mergerec, rlen+slen,mid);
-
+      st1 = rscan->getNext(rid,rrec,rlen);
+      if(st1 !=OK ) break;
     }
   
   delete sscan;
