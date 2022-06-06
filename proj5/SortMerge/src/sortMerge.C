@@ -66,9 +66,9 @@ sortMerge::sortMerge(
   //  return;
   //}
  
-  char *srec = (char*)malloc(sizeof(s_len));
-  char *rrec = (char*)malloc(sizeof(r_len));
-  char *mergerec = (char*)malloc(sizeof(merge_len));
+  char *srec = (char*)malloc(100);
+  char *rrec = (char*)malloc(100);
+  char *mergerec = (char*)malloc(sizeof(200));
   RID sid, rid, mid;
   int slen, rlen;
 
