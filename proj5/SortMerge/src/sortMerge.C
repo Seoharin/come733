@@ -122,13 +122,10 @@ sortMerge::sortMerge(
       }
   }*/
  
-  delete sscan;
+ 
   file1->deleteFile();
-  delete file1;
-
-  delete rscan;
   file2->deleteFile();
-  delete file2;
+  
 }
 // sortMerge destructor
 sortMerge::~sortMerge()
