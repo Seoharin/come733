@@ -17,7 +17,7 @@ static const char* ErrMsgs[] =  {
 
 char *fname1 = "sorted file1";
 char *fname2 = "sorted file2";
-HeapFile* file1, file2, mergedfile;
+HeapFile* file1, *file2, *mergedfile;
 
 static error_string_table ErrTable( JOINS, ErrMsgs );
 
@@ -77,7 +77,7 @@ sortMerge::sortMerge(
   int slen, rlen;
 
   int cmp = 0;
-  status st1,st2;
+  Status st1,st2;
   st1 = rscan->getNext(rid, rrec, rlen);
   st2 = sscan->getNext(sid, srec,slen); 
   while(1){
