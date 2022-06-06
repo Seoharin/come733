@@ -93,7 +93,8 @@ sortMerge::sortMerge(
       //cmp = tupleCmp(rrec,srec);
     }
     else
-      char *mergerec = (char*)malloc(sizeof(merge_len));
+      char *mergerec;
+      mergerec= (char*)malloc(sizeof(merge_len));
       memmove(mergerec, rrec, rlen);
       memmove(mergerec+rlen, srec, slen);
       mergedfile->insertRecord(mergerec, rlen+slen,mid);
