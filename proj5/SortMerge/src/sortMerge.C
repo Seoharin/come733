@@ -81,7 +81,7 @@ sortMerge::sortMerge(
   st2 = sscan->getNext(sid, srec, slen); 
   while(1){
     
-    if(st1!=OK || st2!=OK) break;
+    if(st1!=OK && st2!=OK) break;
     
     cmp = tupleCmp(rrec,srec);
   
