@@ -7,6 +7,7 @@
 #include "scan.h"
 #include "buf.h"
 #include "db.h"
+#include <vector>
 #include "new_error.h"
 
 //  This heapfile implementation is directory-based. We maintain a
@@ -75,7 +76,7 @@ class HeapFile {
     // updates the specified record in the heapfile.
     Status updateRecord(const RID& rid, char *recPtr, int reclen);
 
-    // read record from file, returning pointer and length
+    // read record from file, returning pointer and length as well as the actaul data
     Status getRecord(const RID& rid, char *recPtr, int& recLen); 
 
     // initiate a sequential scan
@@ -85,12 +86,14 @@ class HeapFile {
     Status deleteFile();
 
 
+
   private:
     friend class Scan;
 
     PageId      firstDirPageId;  // page number of header page
     int         file_deleted;	 // flag for whether file is deleted (initialized to be false in constructor)
     char       *fileName;	 // heapfile name
+
 
     // get new data pages through buffer manager
     // (dpinfop stores the information of allocated new data pages)
