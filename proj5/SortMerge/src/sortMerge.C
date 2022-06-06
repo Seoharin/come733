@@ -99,7 +99,7 @@ sortMerge::sortMerge(
       mergedfile->insertRecord(mergerec, rlen+slen,mid);
 
     }
-  }
+  
   delete sscan;
   file1->deleteFile();
   delete file1;
