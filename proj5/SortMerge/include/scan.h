@@ -1,5 +1,6 @@
 /*
  * class Scan
+ * $Id: scan.h,v 1.1 1997/01/02 12:46:43 flisakow Exp $
  */
 
 #ifndef _SCAN_H_
