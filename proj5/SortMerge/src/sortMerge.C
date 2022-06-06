@@ -80,7 +80,8 @@ sortMerge::sortMerge(
   st1 = rscan->getNext(rid, rrec, rlen);
   st2 = sscan->getNext(sid, srec, slen); 
   while(1){
-    if(st1!=OK && st2!=OK) break;
+    
+    if(st1!=OK || st2!=OK) break;
     
     cmp = tupleCmp(rrec,srec);
   
@@ -96,10 +97,13 @@ sortMerge::sortMerge(
       memmove(mergerec, rrec, rlen);
       memmove(mergerec+rlen, srec, slen);
       mergedfile->insertRecord(mergerec, rlen+slen,mid);
-      st1 = rscan->getNext(rid,rrec,rlen);
-      if(st1 !=OK ) break;
-    }
-  
+      
+      st1 = rscan->getNext(rid, rrec, rlen);
+      st2 = sscan->getNext(sid, srec, slen); 
+
+      }
+  }
+ 
   delete sscan;
   file1->deleteFile();
   delete file1;
@@ -107,7 +111,6 @@ sortMerge::sortMerge(
   delete rscan;
   file2->deleteFile();
   delete file2;
-}
 }
 // sortMerge destructor
 sortMerge::~sortMerge()
