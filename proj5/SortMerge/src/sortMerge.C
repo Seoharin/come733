@@ -78,11 +78,11 @@ sortMerge::sortMerge(
   int cmp = 0;
   Status st1,st2;
   
-  Scan *sscan = file1->openScan(s);
+  Scan *rscan = file1->openScan(s);
   st1 = rscan->getNext(rid, rrec, rlen);
   while(st1 !=OK){
 
-    Scan *rscan = file2->openScan(s);
+    Scan *sscan = file2->openScan(s);
     st2 = sscan->getNext(sid, srec, slen); 
     while(st2!=OK){
       if(cmp==0){
