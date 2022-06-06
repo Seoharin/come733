@@ -65,10 +65,7 @@ sortMerge::sortMerge(
   //  s = DONE;
   //  return;
   //}
-
  
-  
-  
   char *srec = (char*)malloc(sizeof(s_len));
   char *rrec = (char*)malloc(sizeof(r_len));
   char *mergerec = (char*)malloc(sizeof(merge_len));
@@ -80,17 +77,18 @@ sortMerge::sortMerge(
   
   Scan *rscan = file1->openScan(s);
   st1 = rscan->getNext(rid, rrec, rlen);
-  while(st1 !=OK){
+  while(st1 ==OK){
 
     Scan *sscan = file2->openScan(s);
     st2 = sscan->getNext(sid, srec, slen); 
-    while(st2!=OK){
+    while(st2 ==OK){
+      cmp = tupleCmp(rrec,srec);
       if(cmp==0){
         memmove(mergerec, rrec, rlen);
         memmove(mergerec+rlen, srec, slen);
         mergedfile->insertRecord(mergerec, rlen+slen,mid);
-        st2 = sscan->getNext(sid, srec, slen); 
       }
+      st2 = sscan->getNext(sid, srec, slen); 
 
     }
     st1 = rscan->getNext(rid, rrec, rlen);
