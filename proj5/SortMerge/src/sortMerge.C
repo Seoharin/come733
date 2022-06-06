@@ -107,7 +107,7 @@ sortMerge::sortMerge(
   file2->deleteFile();
   delete file2;
 }
-
+}
 // sortMerge destructor
 sortMerge::~sortMerge()
 {
