@@ -80,7 +80,9 @@ sortMerge::sortMerge(
     Scan *sscan = file2->openScan(s);
     st2 = sscan->getNext(sid, srec, slen); 
     while(st2 ==OK){
-      cmp = tupleCmp(rrec+roffset,srec+soffset);
+      int* temp1 = (int*)(rrec+roffset);
+      int* temp2 = (int*)(srec+soffset);
+      cmp = tupleCmp(temp1,temp2);
       if(cmp==0){
         memmove(mergerec, rrec,rlen);
         memmove(mergerec+rlen, srec, slen);
