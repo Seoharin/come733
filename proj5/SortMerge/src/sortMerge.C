@@ -47,7 +47,7 @@ sortMerge::sortMerge(
     strcat(secondName,"sorted");
     Sort sortFirst(filename1,firstName,len_in1,in1,t1_str_sizes,join_col_in1,order,amt_of_mem,status);
     Sort sortSecond(filename2,secondName,len_in2,in2,t2_str_sizes,join_col_in2,order,amt_of_mem,status);
-
+    HeapFile* firstFile, *secondFile,*mergedFile;
     firstFile = new HeapFile(firstName,status);
     secondFile = new HeapFile(secondName,status);
     mergedFile = new HeapFile(filename3,status);
