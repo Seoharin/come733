@@ -1,6 +1,9 @@
+
+#define DEBUG
 #include <string.h>
 #include <assert.h>
 #include "sortMerge.h"
+
 
 // Error Protocall:
 
@@ -12,11 +15,6 @@ static const char* ErrMsgs[] =  {
   "Error: HeapFile Failed."
   // maybe more ...
 };
-
-
-char *fname1 = "sorted file1";
-char *fname2 = "sorted file2";
-HeapFile* file1, *file2, *mergedfile;
 
 static error_string_table ErrTable( JOINS, ErrMsgs );
 
@@ -39,94 +37,93 @@ sortMerge::sortMerge(
     TupleOrder      order,          // Sorting order: Ascending or Descending
     Status&         s               // Status of constructor
 ){
-  // search rows under condition,
-	// sort results respectively
-  
-  int s_len=0;
-  int r_len=0;
-  int merge_len=0;
-  
-  for(int i=0;i<len_in1;i++){
-    s_len += t1_str_sizes[i];
-  }
-  for(int i=0;i<len_in2;i++){
-    r_len += t2_str_sizes[i];
-  }
-  merge_len= s_len+r_len;
+	// fill in the body
+    Status status;
 
-  Sort(filename1, fname1, len_in1, in1,  t1_str_sizes,  join_col_in1,  order,  amt_of_mem, s);
-	Sort(filename2, fname2, len_in2, in2,  t2_str_sizes,  join_col_in2,  order,  amt_of_mem, s);
+    char firstName[20] = "";
+    strcat(firstName,filename1);
+    strcat(firstName,"sorted");
+    char secondName[20] = "secondFile";
+    strcat(secondName,"sorted");
+    Sort sortFirst(filename1,firstName,len_in1,in1,t1_str_sizes,join_col_in1,order,amt_of_mem,status);
+    Sort sortSecond(filename2,secondName,len_in2,in2,t2_str_sizes,join_col_in2,order,amt_of_mem,status);
 
-  file1 = new HeapFile(fname1,s);
-  file2 = new HeapFile(fname2,s);
-  mergedfile = new HeapFile(filename3,s);
-  
-  //if(t1_str_sizes[join_col_in1]!=t2_str_sizes[join_col_in2]){
-  //  s = DONE;
-  //  return;
-  //}
- 
-  char *srec = (char*)malloc(100);
-  char *rrec = (char*)malloc(100);
-  char *mergerec = (char*)malloc(sizeof(200));
-  RID sid, rid, mid;
-  int slen, rlen;
+    firstFile = new HeapFile(firstName,status);
+    secondFile = new HeapFile(secondName,status);
+    mergedFile = new HeapFile(filename3,status);
 
-  int cmp = 0;
-  Status st1,st2;
-  
-  Scan *rscan = file1->openScan(s);
-  st1 = rscan->getNext(rid, rrec, rlen);
-  while(st1 ==OK){
+    AttrType firstAttr = in1[join_col_in1];
+    AttrType  secondAttr = in2[join_col_in2];
 
-    Scan *sscan = file2->openScan(s);
-    st2 = sscan->getNext(sid, srec, slen); 
-    while(st2 ==OK){
-      cmp = tupleCmp(rrec,srec);
-      if(cmp==0){
-        memmove(mergerec, rrec, rlen);
-        memmove(mergerec+rlen, srec, slen);
-        mergedfile->insertRecord(mergerec, rlen+slen,mid);
-      }
-      st2 = sscan->getNext(sid, srec, slen); 
-
+    int firstSize = t1_str_sizes[join_col_in1];
+    int secondSize = t2_str_sizes[join_col_in2];
+    if(firstAttr!=secondAttr) {
+        s = DONE;
+        return;
     }
-    st1 = rscan->getNext(rid, rrec, rlen);
-  }
-
-  /*while(1){
-
-    
-    if(st1!=OK || st2!=OK) break;
-    
-    cmp = tupleCmp(rrec,srec);
-  
-    if(cmp>0) {
-      st2 = sscan->getNext(sid, srec, slen);
-      //cmp = tupleCmp(rrec,srec);
-      }
-    else if(cmp<0) {
-      st1 = rscan->getNext(rid,rrec,rlen);
-      //cmp = tupleCmp(rrec,srec);
+    RID firstRID,secondRID;
+    char *firstRecord, *secondRecord;
+    int firstLength,secondLength;
+    firstRecord = new char[100];
+    secondRecord = new char[100];
+    int firstOffset = 0,secondOffset = 0;
+    int i=0;
+    while(i < join_col_in1)
+    {
+        firstOffset += t1_str_sizes[i];
+        i++;
     }
-    else{
-      memmove(mergerec, rrec, rlen);
-      memmove(mergerec+rlen, srec, slen);
-      mergedfile->insertRecord(mergerec, rlen+slen,mid);
-      
-      st1 = rscan->getNext(rid, rrec, rlen);
-      st2 = sscan->getNext(sid, srec, slen); 
+    char *joinFirstColumn = new char[t1_str_sizes[i]];
+    i=0;
+    while (i < join_col_in2)
+    {
+        secondOffset += t2_str_sizes[i];
+        i++;
+    }
+    char *joinSecondColumn = new char[t2_str_sizes[i]];
+    Status status1,status2;
 
-      }
-  }*/
- 
- 
-  file1->deleteFile();
-  file2->deleteFile();
-  
+    int size;
+
+    size = t1_str_sizes[join_col_in1];
+
+    Status st1,st2;
+    Scan *first = firstFile->openScan(st1);
+    for(st1=first->getNext(firstRID,firstRecord,firstLength);st1==OK; st1=first->getNext(firstRID,firstRecord,firstLength))
+    {
+        Scan *second = secondFile->openScan(st2);
+        for(st2=second->getNext(secondRID,secondRecord,secondLength);st2==OK;st2=second->getNext(secondRID,secondRecord,secondLength))
+        {
+             memcpy(joinFirstColumn,firstRecord+firstOffset,t1_str_sizes[join_col_in1]);
+             memcpy(joinSecondColumn,secondRecord+secondOffset,t2_str_sizes[join_col_in2]);
+            int *num1 = (int *) (firstRecord + firstOffset);
+            int *num2 = (int *) (secondRecord + secondOffset);
+            int comp = tupleCmp(joinFirstColumn,joinSecondColumn);
+            if(comp ==0)
+            {
+
+                char *mergedRecord = new char[firstLength + secondLength];
+                memcpy(mergedRecord,firstRecord,firstLength);
+                memcpy(mergedRecord+firstLength,secondRecord,secondLength);
+                RID outRID;
+                Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength,outRID);
+                if(insertStatus!=OK)
+                {
+                    s = DONE;
+                    return;
+                }
+            }
+        }
+    }
+    secondFile->deleteFile();
+    firstFile->deleteFile();
+    s = OK;
+
 }
+
 // sortMerge destructor
 sortMerge::~sortMerge()
 {
 	// fill in the body
 }
+
