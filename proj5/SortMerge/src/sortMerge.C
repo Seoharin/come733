@@ -42,7 +42,7 @@ sortMerge::sortMerge(
   // search rows under condition,
 	// sort results respectively
   int roffset=0, soffset=0;
-  int rsize=0; ssize=0;
+  int rsize=0, ssize=0;
 	
   for(int i=0;i<join_col_in1;i++){
     roffset+=t1_str_sizes[i];
