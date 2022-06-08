@@ -42,11 +42,19 @@ sortMerge::sortMerge(
   // search rows under condition,
 	// sort results respectively
   int roffset=0, soffset=0;
+  int rsize=0; ssize=0;
+	
   for(int i=0;i<join_col_in1;i++){
     roffset+=t1_str_sizes[i];
   }
   for(int i=0;i<join_col_in2;i++){
     soffset+=t2_str_sizes[i];
+  }
+  for(int i=0;i<len_in1;i++){
+    rsize+=t1_str_sizes[i];
+  }
+  for(int i=0;i<len_in2;i++){
+    ssize+=t2_str_sizes[i];
   }
 
   Sort(filename1, fname1, len_in1, in1,  t1_str_sizes,  join_col_in1,  order,  amt_of_mem, s);
@@ -56,9 +64,9 @@ sortMerge::sortMerge(
   file2 = new HeapFile(fname2,s);
   mergedfile = new HeapFile(filename3,s);
   
-  char *rrec = (char*)malloc(sizeof(t1_str_sizes[join_col_in1]));
-  char *srec = (char*)malloc(sizeof(t2_str_sizes[join_col_in2]));
-  char *mergerec = (char*)malloc(sizeof(t1_str_sizes[join_col_in1]+t2_str_sizes[join_col_in2]));
+  char *rrec = (char*)malloc(rsize);
+  char *srec = (char*)malloc(ssize);
+  char *mergerec = (char*)malloc(rsize+ssize);
   RID rid, sid, mid;
   int rlen, slen;
   
