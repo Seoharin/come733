@@ -72,10 +72,10 @@ sortMerge::sortMerge(
     Scan *sscan = file2->openScan(s);
     st2 = sscan->getNext(sid, srec, slen); 
     while(st2 ==OK){
-      cmp = tupleCmp(rrec,srec);
+      cmp = tupleCmp(rrec+roffset,srec+soffset);
       if(cmp==0){
-        memmove(mergerec, rrec+roffset,t1_str_sizes[join_col_in1] );
-        memmove(mergerec+rlen, srec+soffset, t2_str_sizes[join_col_in2]);
+        memmove(mergerec, rrec,rlen);
+        memmove(mergerec+rlen, srec, slen);
         mergedfile->insertRecord(mergerec, rlen+slen,mid);
       
       st2 = sscan->getNext(sid, srec, slen); 
