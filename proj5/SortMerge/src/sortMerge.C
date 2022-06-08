@@ -147,7 +147,7 @@ sortMerge::sortMerge(
 
 			// if we find the position that record S = R,  then user another scan S1 to call postion() find the position
 			// that record s = record r.
-			scanS1 -> position(rid_S2);
+			//scanS1 -> position(rid_S2);
 			statusS1 = scanS1 -> getNext(ridS1, recS1_ptr, len_S1);
 			
 			// if the record in S and R are equal,  merge and insert into output file
@@ -174,7 +174,7 @@ sortMerge::sortMerge(
 				statusR = scanR -> getNext(ridR, recR_ptr, len_R);
 				if(statusR != OK)
 					break;
-				scanS1 -> position(rid_S2);
+				//scanS1 -> position(rid_S2);
 				
 				// move the pointer ahead in relation S, if record in S and R still equal. the merge will continue.
 				statusS1 = scanS1 -> getNext(ridS1, recS1_ptr, len_S1);	
@@ -185,7 +185,7 @@ sortMerge::sortMerge(
 			
 			// If break our of the inner loop, move to a new record in S to restart the scanning
 			// and record the postion in scanS2.
-			scanS2 -> position(ridS1);
+			//scanS2 -> position(ridS1);
 		}	
 		
 		// reclaim the memory.
